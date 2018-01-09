@@ -1,6 +1,6 @@
-from USNO_scraper import *
+from twilight_scraper import *
 
-# raw_html = scrape_USNO("moon", "2015", "HI", "Honolulu")
+# raw_html = scrape_twilight_to_html("moon", "2015", "HI", "Honolulu")
 # print("SCRAPE_USNO")
 # # print(raw_html)
 # print("\n\n\n")
@@ -8,8 +8,7 @@ from USNO_scraper import *
 data = open("Data/RAW_moon_data_2015_HI_Honolulu.html", "r+").read()
 raw_html = "moon", "2015", "HI", "Honolulu", data
 
-
-list_form = format_HTML_to_list(raw_html[4])
+list_form = format_html_to_list(raw_html[4])
 print("LIST FORM")
 # print(list_form)
 print("\n\n\n")
@@ -19,7 +18,7 @@ print("DICT FORM")
 print(dict_form)
 print("\n\n\n")
 
-fixed_dst = fix_DST(dict_form, "eastern")
+fixed_dst = fix_dst(dict_form, "eastern")
 print("FIX DST")
 print(fixed_dst)
 print("\n\n\n")
@@ -27,4 +26,4 @@ print("\n\n\n")
 
 # print(add_hour("2212"))
 
-#TEST NEW TIME, DST HELPERS
+# TEST NEW TIME, DST HELPERS

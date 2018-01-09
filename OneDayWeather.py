@@ -1,5 +1,5 @@
 import datetime
-from USNO_scraper import next_day
+from twilight_scraper import next_day
 
 """
 example weather_data:
@@ -41,6 +41,7 @@ class OneDayWeather:
     Represents one day's weather data with any combination of general weather, sun data, moon data,
     nautical twilight times, civil twilight times, and astronomical twilight times.
     """
+
     def __str__(self):
         return str(vars(self))
 
@@ -154,6 +155,7 @@ class MultiDayWeather:
     Represents multi-day weather data with any combination of general weather, sun data, moon data,
     nautical twilight times, civil twilight times, and astronomical twilight times.
     """
+
     def __str__(self):
         return str(self.one_days)
 
@@ -165,8 +167,8 @@ class MultiDayWeather:
                  year_start=None, month_start=None, day_start=None,
                  year_end=None, month_end=None, day_end=None):
         sun_data, moon_data, nautical_twilight_data, civil_twilight_data, astronomical_twilight_data = \
-            self.__setup_USNO_data(sun_data, moon_data, nautical_twilight_data, civil_twilight_data,
-                                   astronomical_twilight_data)
+            self.__setup_twilight_data(sun_data, moon_data, nautical_twilight_data, civil_twilight_data,
+                                       astronomical_twilight_data)
         self.one_days = []
         if weather_data is not None:
             for one_day_weather_data in weather_data["data"]:
@@ -190,7 +192,7 @@ class MultiDayWeather:
                 raise Exception("Need either weather data or date")
 
             year, month, day = year_start, month_start, day_start
-            year_end, month_end, day_end = next_day(year_end, month_end, day_end) #to be inclusive
+            year_end, month_end, day_end = next_day(year_end, month_end, day_end)  # to be inclusive
             while (year, month, day) != (year_end, month_end, day_end):
                 matched_sun_data = self.__match(sun_data, year)
                 matched_moon_data = self.__match(moon_data, year)
@@ -206,9 +208,8 @@ class MultiDayWeather:
                 self.one_days.append(one_day_weather)
                 year, month, day = next_day(year, month, day)
 
-
-    def __setup_USNO_data(self, sun_data, moon_data, nautical_twilight_data, civil_twilight_data,
-                          astronomical_twilight_data):
+    def __setup_twilight_data(self, sun_data, moon_data, nautical_twilight_data, civil_twilight_data,
+                              astronomical_twilight_data):
         sun_data = self.__list_padding(sun_data)  # to support multiple years
         moon_data = self.__list_padding(moon_data)
         nautical_twilight_data = self.__list_padding(nautical_twilight_data)
@@ -226,11 +227,11 @@ class MultiDayWeather:
         else:
             return data
 
-    def __match(self, USNO_data, year):
-        if USNO_data is None:
+    def __match(self, twilight_data, year):
+        if twilight_data is None:
             return None
 
-        for year_data in USNO_data:
+        for year_data in twilight_data:
             if year_data["year"] == year:
                 return year_data
 

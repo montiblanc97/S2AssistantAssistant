@@ -4,37 +4,47 @@ import pytz
 import datetime
 import json
 import calendar
+import inspect
 
 
-def scrape_fix_usno(task_name, year="2018", state="MA", city="Cambridge", timezone="eastern",
-                    write_html=True, write_unfixed_dict=True, write_fixed_dict = True):
-    html = scrape_usno_html(task_name, year, state, city, write_html)
-    formatted = format_HTML_to_list(html)
-    processed = process_data_list(task_name, year, state, city, formatted, write_unfixed_dict)
-    fixed = fix_DST(processed, timezone, write_fixed_dict)
+def twilight_scrape_fix_auto_timezone(task_name, year, city, state, weather_data, write_html=False,
+                                      write_unfixed_dict=False, write_fixed_dict=False):
+    if "timezone" not in weather_data.keys():
+        raise Exception("Invalid weather data")
+    timezone = weather_data["timezone"]
+    return twilight_scrape_fix(task_name, year, city, state, timezone, write_html, write_unfixed_dict, write_fixed_dict)
+
+
+def twilight_scrape_fix(task_name, year, city, state, timezone, write_html=False, write_unfixed_dict=False,
+                        write_fixed_dict=False):
+    html = scrape_twilight_to_html(task_name, year, city, state, write_html)
+    formatted = format_html_to_list(html)
+    processed = process_data_list(task_name, year, city, state, formatted, write_unfixed_dict)
+    fixed = fix_dst(processed, timezone, write_fixed_dict)
 
     return fixed
 
-def pass_fix_usno(html_path, task_name, year="2018", state="MA", city="Cambridge", timezone="eastern",
-             write_unfixed_dict=True, write_fixed_dict = True):
-    html = data = open(html_path, "r+").read()
-    formatted = format_HTML_to_list(html)
-    processed = process_data_list(task_name, year, state, city, formatted, write_unfixed_dict)
-    fixed = fix_DST(processed, timezone, write_fixed_dict)
 
+def twilight_pass_fix(html_path, task_name, year, city, state, timezone,
+                      write_unfixed_dict=False, write_fixed_dict=False):
+    html = open(html_path, "r+").read()
+    formatted = format_html_to_list(html)
+    processed = process_data_list(task_name, year, city, state, formatted, write_unfixed_dict)
+    fixed = fix_dst(processed, timezone, write_fixed_dict)
     return fixed
 
-def scrape_usno_html(task_name, year="2018", state="MA", city="Cambridge", write=True):
+
+def scrape_twilight_to_html(task_name, year, city, state, write):
     """
-    Scrapes USNO data in HTML format
+    Scrapes twilight data in HTML format
     :param task_name: of data to be scraped. Valid paramters are "sun", "moon",
         "nautical twilight", "civil twilight", "astronomical twilight"
     :param year: of data to be scraped
-    :param state: ditto, must be in initial format
     :param city: ditto
+    :param state: ditto, must be in initial format
     :param write: whether or not to save scraped data as HTML file
     :return: tuple of strings of task name, year, state, city, and
-            USNO data as specified in paramters in HTML format
+            twilight data as specified in paramters in HTML format
     """
     url = "http://aa.usno.navy.mil/cgi-bin/aa_rstablew.pl?ID=AA"
     url += "&year=" + year
@@ -50,48 +60,47 @@ def scrape_usno_html(task_name, year="2018", state="MA", city="Cambridge", write
     url += "&state=" + state
     city = city.replace(" ", "+")
     url += "&place=" + city
-
     response = requests.get(url)
 
     if write:
-            #to save date gathered
-            filename = "Data/RAW_%s_data_%s_%s_%s.html" % (task_name.lower().replace(" ", "_"), year, state, city)
+        # to save date gathered
+        filename = "Data/RAW_%s_data_%s_%s_%s.html" % (task_name.lower().replace(" ", "_"), year, state, city)
 
-            writing = open(filename, "w+")
-            writing.write(response.text)
-            writing.close()
+        writing = open(filename, "w+")
+        writing.write(response.text)
+        writing.close()
 
     return response.text
 
 
-def format_HTML_to_list(HTML):
+def format_html_to_list(html):
     """
-    Formats and strips USNO data HTML file into just the applicable fields necessary for further processing
-    :param HTML: string of USNO data in HTML
-    :return: formatted and stripped USNO data in list, no longer has identifying data or in HTML format
+    Formats and strips twilight data HTML file into just the applicable fields necessary for further processing
+    :param html: string of twilight data in HTML
+    :return: formatted and stripped twilight data in list, no longer has identifying data or in HTML format
         will be in form: day time_for_January time_for_January ...for each month
         e.g. 01 0943 2127... which contains sunrise and sunset data of January 1 (other tasks supported)
     """
-    soup = BeautifulSoup(HTML, 'html.parser')
+    soup = BeautifulSoup(html, 'html.parser')
     info = soup.find("pre").text.split("\n")[10:-2]
     return info
 
 
-def process_data_list(task_name, year, state, city, data_list, write=True):
+def process_data_list(task_name, year, city, state, data_list, write):
     """
-    Process USNO data in list form into a dictionary, can also write a .JSON.
+    Process twilight data in list form into a dictionary, can also write a .JSON.
     Also adds an hour to times within data if under DST.
     "****" will be used to designate a carried over time (e.g. sunset occurs next day).
     :param task_name: of data to be scraped. Valid paramters are "sun", "moon",
         "nautical twilight", "civil twilight", "astronomical twilight"
     :param year: of data to be scraped
-    :param state: ditto, must be in initial format
     :param city: ditto
-    :param timezone: ditto, valid inputs are:
+    :param state: ditto, must be in initial format
+    :param timezone: ditto, valid inputs are timezone format ("America/New York") or:
             "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
-    :param data_list: USNO data in list form as formatted by format_HTML_to_list
+    :param data_list: twilight data in list form as formatted by format_html_to_list
     :param write: whether or not to write output as a .JSON
-    :return: a dictionary of USNO data with human-friendly labels
+    :return: a dictionary of twilight data with human-friendly labels
         e.g. {"task_name": "sun",
             "year": "2017",
             "state": "MA",
@@ -116,7 +125,7 @@ def process_data_list(task_name, year, state, city, data_list, write=True):
            "data": {}
            }
 
-    task_time_lookup = {"sun" : ("sunrise", "sunset"), "moon": ("moonrise", "moonset"),
+    task_time_lookup = {"sun": ("sunrise", "sunset"), "moon": ("moonrise", "moonset"),
                         "nautical twilight": ("BMNT", "EENT"), "astronomical twilight": ("BMAT", "EEAT"),
                         "civil twilight": ("BMCT", "EECT")}
     task_time_1 = task_time_lookup[task_name][0]
@@ -129,7 +138,7 @@ def process_data_list(task_name, year, state, city, data_list, write=True):
         day = full_day_data[:2].lstrip("0")
         stripped_day_data = full_day_data[4:]
         for month in range(1, 13):
-            start_index = (month-1) * 11
+            start_index = (month - 1) * 11
             end_index = start_index + 9
             single_day_data = stripped_day_data[start_index: end_index]
 
@@ -142,16 +151,17 @@ def process_data_list(task_name, year, state, city, data_list, write=True):
             out["data"][str(month)][day] = {task_time_1: first_time, task_time_2: second_time}
 
     if write:
-            #to save date gathered
-            filename = "Data/%s_data_%s_%s_%s.json" % (task_name.lower().replace(" ", "_"), year, state, city)
-            writing = open(filename, "w+")
-            written_out = json.dumps(out)
-            writing.write(written_out)
-            writing.close()
+        # to save date gathered
+        filename = "Data/%s_data_%s_%s_%s.json" % (task_name.lower().replace(" ", "_"), year, state, city)
+        writing = open(filename, "w+")
+        written_out = json.dumps(out)
+        writing.write(written_out)
+        writing.close()
 
     return out
 
-def is_DST(aware_dt):
+
+def is_dst(aware_dt):
     """
     Determines if given datetime object is under DST
     https://stackoverflow.com/questions/31146092/how-to-determine-if-a-timezone-specific-date-in-the-past-is-daylight-saving-or-n
@@ -170,14 +180,18 @@ def localized_date_time(year, month, day, time, timezone):
     :param month: ditto
     :param day: ditto
     :param time: ditto
-    :param timezone: to assign, valid inputs are:
+    :param timezone: to assign, valid inputs are timezone format ("America/New York") or:
             "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
     :return: datetime object with timezone property
     https://stackoverflow.com/questions/31146092/how-to-determine-if-a-timezone-specific-date-in-the-past-is-daylight-saving-or-n
     """
     year, month, day = int(year), int(month), int(day)
     dt = datetime.datetime(year=year, month=month, day=day, hour=int(time[:2]), minute=int(time[2:]))
-    tz = pytz.timezone("US/" + timezone.title())
+
+    if "/" not in timezone:  # to support the other valid inputs
+        timezone = "US/" + timezone.title()
+
+    tz = pytz.timezone(timezone)
     dt = tz.localize(dt, is_dst=True)  # defaults to true if ambiguous
 
     return dt
@@ -200,8 +214,8 @@ def next_day(year, month, day):
     is_leap = calendar.isleap(year)
     days_lookup = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
     if (day < days_lookup[month]) or (month == 2 and day == 28 and is_leap):
-        return str(year), str(month), str(day+1)
-    return str(month+1), str(1)
+        return str(year), str(month), str(day + 1)
+    return str(year), str(month + 1), str(1)
 
 
 def add_hour(time):
@@ -222,7 +236,7 @@ def add_hour(time):
     return hour + time[2:], overflow
 
 
-def fix_DST(processed_data, timezone, write=True):
+def fix_dst(processed_data, timezone, write):
     """
     Given data processed as in process_data_list, adjusts times to account for DST
     :param processed_data: as in spec of process_data_list
@@ -248,16 +262,15 @@ def fix_DST(processed_data, timezone, write=True):
                 continue
 
             dt = localized_date_time(year, month, day, time, timezone)
-            if is_DST(dt):
+            if is_dst(dt):
                 new_time, flag = add_hour(time)
                 if flag:
                     chain_fix(year, month, day, time_task, processed_data, ignore)
                 else:
                     processed_data["data"][month][day][time_task] = new_time
 
-
         next_iter = next_day(year, month, day)
-        if next_iter[0] != year: #new year (end of data)
+        if next_iter[0] != year:  # new year (end of data)
             break
         current = next_iter
 
@@ -274,20 +287,21 @@ def fix_DST(processed_data, timezone, write=True):
 
 
 def chain_fix(year, month, day, time_task, processed_data, ignore):
-    current = (month, day) #find where overflow stops (first instance of "****")
+    current = (month, day)  # find where overflow stops (first instance of "****")
     current_value = processed_data["data"][current[0]][current[1]][time_task]
     history = []
     while current_value != "****":
         history.append(current)
-        current = next_day(year, current[0], current[1])
-        current_value = processed_data["data"][current[1]][current[2]][time_task]
+        next_values = next_day(year, current[0], current[1])
+        current = next_values[1], next_values[2]
+        current_value = processed_data["data"][current[0]][current[1]][time_task]
 
     while len(history) > 0:
         working = history.pop()
         working_month = working[0]
         working_day = working[1]
         new_time = add_hour(processed_data["data"][working_month][working_day][time_task])[0]
-        dummy, new_month, new_day = next_day(year, working_month, working_day) #year unused
+        dummy, new_month, new_day = next_day(year, working_month, working_day)  # year unused
         processed_data["data"][new_month][new_day][time_task] = new_time
         ignore.add((new_month, new_day, time_task))
 

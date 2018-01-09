@@ -1,8 +1,17 @@
 import requests
 import datetime
 import json
+from exception import WeatherError
 
-key = ""
+
+def get_years(weather_data):
+    if weather_data is None or "data" not in weather_data:
+        raise WeatherError("Year information not found")
+    out = set()
+    for day in weather_data["data"]:
+        out.add(day["datetime"][:4])
+    return list(out)
+
 
 def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
                             days="14", imperial_units=True, write=True):
@@ -23,7 +32,7 @@ def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
     url += "?key=" + api_key
     url += "&lang=en"
 
-    state = state.replace(" ", "+") #state can be spelled out "North Dakota" but for purposes of URL creation
+    state = state.replace(" ", "+")  # tate can be spelled out "North Dakota" but for purposes of URL creation
     city = city.replace(" ", "+")
     url += "&city=" + city + "," + state
     url += "&country=" + country
@@ -34,13 +43,13 @@ def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
     response = requests.get(url)
 
     if write:
-            #to save date gathered (only daily weather requested)
-            now = datetime.datetime.now()
-            filename = "Data/weather_data_%s_%s_%s.json" % (now.year, now.month, now.day)
+        # to save date gathered (only daily weather requested)
+        now = datetime.datetime.now()
+        filename = "Data/weather_data_%s_%s_%s.json" % (now.year, now.month, now.day)
 
-            writing = open(filename, "w+")
-            writing.write(response.text)
-            writing.close()
+        writing = open(filename, "w+")
+        writing.write(response.text)
+        writing.close()
 
     return json.loads(response.text)
 
