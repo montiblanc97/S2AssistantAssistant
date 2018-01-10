@@ -1,7 +1,9 @@
+import time
+
 import OneDayWeather
 import twilight_scraper
 import weatherbit_caller
-from exception import AccessError
+from exception import AccessError, WeatherError
 
 
 def create_rep(weather=None, sun=None, moon=None, nautical=None, astronomical=None, civil=None, parameters=None):
@@ -16,12 +18,13 @@ def create_rep(weather=None, sun=None, moon=None, nautical=None, astronomical=No
     :param parameters: needed to scrape in a dictionary format {string: string or Boolean depending on key},
                        see specification for weather and twilight scrapers for details.
             keys needed for weather data: "api_key", "city", "state", "days", "imperial_units", "write_weather"
-                                          if twilight data also needed: "country"
-            keys needed for twilight data: "city", "state", "write_html", "write_unfixed_dict", "write_fixed_dict",
-                                          if weather data is not given/scraped: "timezone", "year_start", "month_start",
+                                          if twilight data not needed: "country"
+            keys needed for twilight data: "write_html", "write_unfixed_dict", "write_fixed_dict",
+                                          if weather data is not given/scraped: "city", "state", "timezone",
+                                                                                "year_start", "month_start",
                                                                                 "day_start", "year_end", "month_end",
                                                                                 "day_end"
-    :return: MultiDayWeather object representing passed/scraped data
+    :return: MultiDayWeather object representing passed/scraped data, AccessError if required parameter not found
     """
     if weather is False:
         weather = None
@@ -61,6 +64,13 @@ def create_rep(weather=None, sun=None, moon=None, nautical=None, astronomical=No
 
 
 def classifier(task_name, parameters, weather=None):
+    """
+    Scrapes weather or twilight data.
+    :param task_name: "weather" or twilight task_names ("sun", "moon", etc.)
+    :param parameters: necessary parameters needed, see create_rep specification
+    :param weather: weather data (can be used instead of certain parameters, see create_rep specification)
+    :return: relevant weather or twilight data, AccessError if required parameter not found
+    """
     if task_name == "weather":
         api_key = error_catch_access("api_key", parameters)
         city = error_catch_access("city", parameters)
@@ -89,11 +99,7 @@ def classifier(task_name, parameters, weather=None):
 
             out = []
             year_start = error_catch_access("year_start", parameters)
-            month_start = error_catch_access("month_start", parameters)
-            day_start = error_catch_access("day_start", parameters)
             year_end = error_catch_access("year_end", parameters)
-            month_end = error_catch_access("month_end", parameters)
-            day_end = error_catch_access("day_end", parameters)
 
             years_needed = [year_start]
             current = int(year_start)
@@ -102,21 +108,41 @@ def classifier(task_name, parameters, weather=None):
                 years_needed.append(str(current))
 
             for year in years_needed:
-                out.append(twilight_scraper.twilight_scrape_fix(task_name, year, city, state, timezone,
-                                                                write_html, write_unfixed_dict,
-                                                                write_fixed_dict))
+                out.append(twilight_scraper.twilight_scrape_fix(task_name, year, city, state, timezone, write_html,
+                                                                write_unfixed_dict, write_fixed_dict))
+                time.sleep(2)  # don't scrape so fast
             return out
         else:
             out = []
-            years_needed = weatherbit_caller.get_years(weather)
+            years_needed = get_years(weather)
             for year in years_needed:
-                out.append(twilight_scraper.twilight_scrape_fix_auto_timezone(task_name, year, city, state, weather,
-                                                                              write_html, write_unfixed_dict,
-                                                                              write_fixed_dict))
+                out.append(twilight_scraper.twilight_scrape_fix_auto_weather(task_name, year, weather, write_html,
+                                                                             write_unfixed_dict, write_fixed_dict))
+                time.sleep(2)  # don't scrape so fast
             return out
 
 
 def error_catch_access(key, parameters):
+    """
+    Finds value associated with key in parameters or throws AccessError
+    :param key: to be looked up
+    :param parameters: dictionary to look up key in
+    :return: value associated with key or AccessError if not found
+    """
     if key not in parameters.keys():
         raise AccessError("Required parameter: " + key + " not found")
     return parameters[key]
+
+
+def get_years(weather_data):
+    """
+    Using weather data from write_city_weather_data, determine the years of the days within.
+    :param weather_data: from write_city_weather_data
+    :return: list of years contained within weather_data
+    """
+    if weather_data is None or "data" not in weather_data:
+        raise WeatherError("Year information not found")
+    out = set()
+    for day in weather_data["data"]:
+        out.add(day["datetime"][:4])
+    return list(out)

@@ -1,16 +1,7 @@
-import requests
 import datetime
 import json
-from exception import WeatherError
 
-
-def get_years(weather_data):
-    if weather_data is None or "data" not in weather_data:
-        raise WeatherError("Year information not found")
-    out = set()
-    for day in weather_data["data"]:
-        out.add(day["datetime"][:4])
-    return list(out)
+import requests
 
 
 def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",

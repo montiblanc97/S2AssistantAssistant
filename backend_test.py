@@ -77,15 +77,16 @@ import commander
 
 # -----------------------------------------------------
 # create_rep scrape
-# parameters = {"api_key": "", "city": "Cambridge", "state": "MA", "days": "14",
-#               "write_weather": True,
-#               "write_unfixed_dict": True, "write_fixed_dict": True, "imperial_units": True, "write_html": True}
-# with_weather = commander.create_rep(True, True, True, True, True, True, parameters)
+parameters = {"api_key": "", "city": "Cambridge", "state": "MA", "days": "14", "write_weather": True,
+              "write_unfixed_dict": True, "write_fixed_dict": True, "imperial_units": True, "write_html": True}
+with_weather = commander.create_rep(True, True, True, True, True, True, parameters)
 
 # -----------------------------------------------------
-# create_rep scrape multi year
-# parameters = {"city": "Cambridge", "state": "MA", "days": "14", "write_weather": True, "write_unfixed_dict": True, "write_fixed_dict": True, "imperial_units": True, "write_html": True, "year_start": "2018", "month_start": "12",
-#               "day_start": "30", "year_end": "2020", "month_end": "1", "day_end": "1", "timezone": "eastern"}
+# create_rep scrape multi year CAREFUL might scrape too much
+# parameters = {"city": "Cambridge", "state": "MA", "days": "14", "write_weather": True, "write_unfixed_dict": True,
+#               "write_fixed_dict": True, "imperial_units": True, "write_html": True, "year_start": "2018",
+#               "month_start":"12", "day_start": "30", "year_end": "2020", "month_end": "1", "day_end": "1",
+#               "timezone": "eastern"}
 # with_weather = commander.create_rep(False, True, True, True, True, True, parameters)
 
 # -----------------------------------------------------

@@ -24,6 +24,4 @@ print(fixed_dst)
 print("\n\n\n")
 
 
-# print(add_hour("2212"))
-
-# TEST NEW TIME, DST HELPERS
+print(add_hour("2212"))

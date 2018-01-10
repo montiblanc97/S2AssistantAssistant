@@ -4,19 +4,78 @@ import pytz
 import datetime
 import json
 import calendar
-import inspect
 
 
-def twilight_scrape_fix_auto_timezone(task_name, year, city, state, weather_data, write_html=False,
-                                      write_unfixed_dict=False, write_fixed_dict=False):
-    if "timezone" not in weather_data.keys():
+def twilight_scrape_fix_auto_weather(task_name, year, weather_data, write_html=False, write_unfixed_dict=False,
+                                     write_fixed_dict=False):
+    """
+    Same as twilight_scrape_fix but determines city, state, and timezone automatically using weather_data
+    :param task_name: of data to be scraped. Valid parameters are "sun", "moon",
+        "nautical twilight", "civil twilight", "astronomical twilight"
+    :param year: of data to be scraped
+    :param weather_data: weather data of specified city
+    :param write_html: whether or not to save raw HTML scraped off USNO
+    :param write_unfixed_dict: whether or not to save data parsed into below format (without DST fix)
+    :param write_fixed_dict: whether or not to save DST fixed data
+    :return: a dictionary of twilight data with human-friendly labels
+        e.g. {"task_name": "sun",
+            "year": "2017",
+            "state": "MA",
+            "city": "Cambridge",
+            "data": {1:
+                        {1: {"sunrise": 0943, "sunset": 2127}...}
+                    ...}
+            ...}
+        template: {"task_name": task_name,
+            "year": year,
+            "state": state,
+            "city": city,
+            "data": {month:
+                        {day: {task_specific_data: time, other_task_specific_data: time}...}
+                    ...}
+            ...}
+    """
+    if "timezone" not in weather_data.keys() or "city_name" not in weather_data.keys() or \
+            "state_code" not in weather_data.keys():
         raise Exception("Invalid weather data")
     timezone = weather_data["timezone"]
+    city = weather_data["city_name"]
+    state = weather_data["state_code"]
     return twilight_scrape_fix(task_name, year, city, state, timezone, write_html, write_unfixed_dict, write_fixed_dict)
 
 
 def twilight_scrape_fix(task_name, year, city, state, timezone, write_html=False, write_unfixed_dict=False,
                         write_fixed_dict=False):
+    """
+    Scrape twilight data from USNO and apply DST if applicable.
+    :param task_name: of data to be scraped. Valid parameters are "sun", "moon",
+        "nautical twilight", "civil twilight", "astronomical twilight"
+    :param year: of data to be scraped
+    :param city: ditto
+    :param state: ditto, must be in initial format
+    :param timezone: ditto, valid inputs are timezone format ("America/New York") or:
+            "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
+    :param write_html: whether or not to save raw HTML scraped off USNO
+    :param write_unfixed_dict: whether or not to save data parsed into below format (without DST fix)
+    :param write_fixed_dict: whether or not to save DST fixed data
+    :return: a dictionary of twilight data with human-friendly labels
+        e.g. {"task_name": "sun",
+            "year": "2017",
+            "state": "MA",
+            "city": "Cambridge",
+            "data": {1:
+                        {1: {"sunrise": 0943, "sunset": 2127}...}
+                    ...}
+            ...}
+        template: {"task_name": task_name,
+            "year": year,
+            "state": state,
+            "city": city,
+            "data": {month:
+                        {day: {task_specific_data: time, other_task_specific_data: time}...}
+                    ...}
+            ...}
+    """
     html = scrape_twilight_to_html(task_name, year, city, state, write_html)
     formatted = format_html_to_list(html)
     processed = process_data_list(task_name, year, city, state, formatted, write_unfixed_dict)
@@ -27,6 +86,36 @@ def twilight_scrape_fix(task_name, year, city, state, timezone, write_html=False
 
 def twilight_pass_fix(html_path, task_name, year, city, state, timezone,
                       write_unfixed_dict=False, write_fixed_dict=False):
+    """
+    Same as twilight_scrape_fix but instead of scraping, uses given raw HTML data
+    :param html_path: path of raw HTML data
+    :param task_name: of data to be scraped. Valid parameters are "sun", "moon",
+        "nautical twilight", "civil twilight", "astronomical twilight"
+    :param year: of data to be scraped
+    :param city: ditto
+    :param state: ditto, must be in initial format
+    :param timezone: ditto, valid inputs are timezone format ("America/New York") or:
+            "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
+    :param write_unfixed_dict: whether or not to save data parsed into below format (without DST fix)
+    :param write_fixed_dict: whether or not to save DST fixed data
+    :return: a dictionary of twilight data with human-friendly labels
+        e.g. {"task_name": "sun",
+            "year": "2017",
+            "state": "MA",
+            "city": "Cambridge",
+            "data": {1:
+                        {1: {"sunrise": 0943, "sunset": 2127}...}
+                    ...}
+            ...}
+        template: {"task_name": task_name,
+            "year": year,
+            "state": state,
+            "city": city,
+            "data": {month:
+                        {day: {task_specific_data: time, other_task_specific_data: time}...}
+                    ...}
+            ...}
+    """
     html = open(html_path, "r+").read()
     formatted = format_html_to_list(html)
     processed = process_data_list(task_name, year, city, state, formatted, write_unfixed_dict)
@@ -60,6 +149,7 @@ def scrape_twilight_to_html(task_name, year, city, state, write):
     url += "&state=" + state
     city = city.replace(" ", "+")
     url += "&place=" + city
+    print(url)
     response = requests.get(url)
 
     if write:
@@ -287,6 +377,17 @@ def fix_dst(processed_data, timezone, write):
 
 
 def chain_fix(year, month, day, time_task, processed_data, ignore):
+    """
+    Given an overflow time due to the addition of an hour in DST conversion, fixes all necessary times affected by
+    the overflow.
+    :param year: of overflow time
+    :param month: of overflow time
+    :param day: of overflow time
+    :param time_task: of data e.g. "sunrise"
+    :param processed_data: to be fixed (will be mutated)
+    :param ignore: set to keep track of already altered dates (will be mutated) e.g. {"month", "day", "time_task"}
+    :return: nothing, mutates processed_data and ignore
+    """
     current = (month, day)  # find where overflow stops (first instance of "****")
     current_value = processed_data["data"][current[0]][current[1]][time_task]
     history = []

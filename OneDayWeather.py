@@ -1,39 +1,6 @@
 import datetime
 from twilight_scraper import next_day
-
-"""
-example weather_data:
-{
-  "wind_cdir": "SW",
-  "rh": 82,
-  "wind_spd": 11.2,
-  "pop": 15,
-  "wind_cdir_full": "southwest",
-  "slp": 1005.8,
-  "app_max_temp": 45.1,
-  "pres": 1002.5,
-  "dewpt": 36,
-  "snow": 0,
-  "uv": 2,
-  "ts": 1513684800,
-  "wind_dir": 225,
-  "weather": {
-    "icon": "c04d",
-    "code": "804",
-    "description": "Overcast clouds"
-  },
-  "app_min_temp": 25.4,
-  "max_temp": 45.1,
-  "snow_depth": 0,
-  "precip": 0,
-  "max_dhi": 252.8,
-  "datetime": "2017-12-19",
-  "temp": 41,
-  "min_temp": 33.8,
-  "clouds": 93,
-  "vis": 6.2
-}
-"""
+from exception import MissingTwilightDataError
 
 
 class OneDayWeather:
@@ -41,7 +8,6 @@ class OneDayWeather:
     Represents one day's weather data with any combination of general weather, sun data, moon data,
     nautical twilight times, civil twilight times, and astronomical twilight times.
     """
-
     def __str__(self):
         return str(vars(self))
 
@@ -155,7 +121,6 @@ class MultiDayWeather:
     Represents multi-day weather data with any combination of general weather, sun data, moon data,
     nautical twilight times, civil twilight times, and astronomical twilight times.
     """
-
     def __str__(self):
         return str(self.one_days)
 
@@ -217,7 +182,13 @@ class MultiDayWeather:
         astronomical_twilight_data = self.__list_padding(astronomical_twilight_data)
         return sun_data, moon_data, nautical_twilight_data, civil_twilight_data, astronomical_twilight_data
 
-    def __list_padding(self, data):
+    @staticmethod
+    def __list_padding(data):
+        """
+        Puts data into a list if not already a list
+        :param data:
+        :return: data in a list if not already a list
+        """
         if data is None:
             return None
 
@@ -227,15 +198,23 @@ class MultiDayWeather:
         else:
             return data
 
-    def __match(self, twilight_data, year):
-        if twilight_data is None:
+    @staticmethod
+    def __match(list_twilight_data, year):
+        """
+        From a list of twilight data, return the data of a specific year or raise a MissingTwilightDataError otherwise
+        :param list_twilight_data:
+        :param year: to be looked up
+        :return: twilight data for year or MissingTwilightDataError if not found
+        """
+        if list_twilight_data is None:
             return None
 
-        for year_data in twilight_data:
+        for year_data in list_twilight_data:
             if year_data["year"] == year:
                 return year_data
 
-        raise Exception("Corresponding year not found")
+        raise MissingTwilightDataError("Corresponding year not found")
 
     def get_csv(self):
+        # TODO: implement
         pass
