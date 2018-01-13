@@ -1,5 +1,5 @@
 import twilight_scraper
-import OneDayWeather
+import weather_reps
 import weatherbit_caller
 import pprint
 import json
@@ -25,22 +25,22 @@ import commander
 
 # -----------------------------------------------------
 # Pass-in data (after running above once)
-# weather_data = json.loads(open("Data/weather_data_2018_1_2.json", "r+").read())  # will need to change date
-# sun = twilight_scraper.twilight_pass_fix("Data/RAW_sun_data_2018_MA_Cambridge.html", "sun", "2018", "Cambridge",
-#                                          "MA", "eastern", False, False)
-# moon = twilight_scraper.twilight_pass_fix("Data/RAW_moon_data_2018_MA_Cambridge.html", "moon", "2018", "Cambridge",
-#                                           "MA", "eastern", False, False)
-# nautical = twilight_scraper.twilight_pass_fix("Data/RAW_nautical_twilight_data_2018_MA_Cambridge.html",
-#                                               "nautical twilight", "2018", "Cambridge", "MA", "eastern", False, False)
-# astronomical = twilight_scraper.twilight_pass_fix("Data/RAW_astronomical_twilight_data_2018_MA_Cambridge.html",
-#                                                   "astronomical twilight", "2018", "Cambridge", "MA", "eastern", False,
-#                                                   False)
-# civil = twilight_scraper.twilight_pass_fix("Data/RAW_civil_twilight_data_2018_MA_Cambridge.html", "civil twilight",
-#                                            "2018", "Cambridge", "MA", "eastern", False, False)
+weather_data = json.loads(open("Data/weather_data_2018_1_2.json", "r+").read())  # will need to change date after scrape
+sun = twilight_scraper.twilight_pass_fix("Data/RAW_sun_data_2018_MA_Cambridge.html", "sun", "2018", "Cambridge",
+                                         "MA", "eastern", False, False)
+moon = twilight_scraper.twilight_pass_fix("Data/RAW_moon_data_2018_MA_Cambridge.html", "moon", "2018", "Cambridge",
+                                          "MA", "eastern", False, False)
+nautical = twilight_scraper.twilight_pass_fix("Data/RAW_nautical_twilight_data_2018_MA_Cambridge.html",
+                                              "nautical twilight", "2018", "Cambridge", "MA", "eastern", False, False)
+astronomical = twilight_scraper.twilight_pass_fix("Data/RAW_astronomical_twilight_data_2018_MA_Cambridge.html",
+                                                  "astronomical twilight", "2018", "Cambridge", "MA", "eastern", False,
+                                                  False)
+civil = twilight_scraper.twilight_pass_fix("Data/RAW_civil_twilight_data_2018_MA_Cambridge.html", "civil twilight",
+                                           "2018", "Cambridge", "MA", "eastern", False, False)
 
 # -----------------------------------------------------
 # General Case
-# with_weather = OneDayWeather.MultiDayWeather(weather_data, sun, moon, nautical, civil, astronomical)
+with_weather = weather_reps.MultiDayWeather(weather_data, sun, moon, nautical, civil, astronomical)
 
 # -----------------------------------------------------
 # Change to Daylight Savings Time and Date Input
@@ -77,12 +77,12 @@ import commander
 
 # -----------------------------------------------------
 # create_rep scrape
-parameters = {"api_key": "", "city": "Cambridge", "state": "MA", "days": "14", "write_weather": True,
-              "write_unfixed_dict": True, "write_fixed_dict": True, "imperial_units": True, "write_html": True}
-with_weather = commander.create_rep(True, True, True, True, True, True, parameters)
+# parameters = {"api_key": "", "city": "Cambridge", "state": "MA", "days": "14", "write_weather": True,
+#               "write_unfixed_dict": True, "write_fixed_dict": True, "imperial_units": True, "write_html": True}
+# with_weather = commander.create_rep(True, True, True, True, True, True, parameters)
 
 # -----------------------------------------------------
-# create_rep scrape multi year CAREFUL might scrape too much
+# create_rep scrape multi year ***CAREFUL might scrape too much***
 # parameters = {"city": "Cambridge", "state": "MA", "days": "14", "write_weather": True, "write_unfixed_dict": True,
 #               "write_fixed_dict": True, "imperial_units": True, "write_html": True, "year_start": "2018",
 #               "month_start":"12", "day_start": "30", "year_end": "2020", "month_end": "1", "day_end": "1",
@@ -90,6 +90,14 @@ with_weather = commander.create_rep(True, True, True, True, True, True, paramete
 # with_weather = commander.create_rep(False, True, True, True, True, True, parameters)
 
 # -----------------------------------------------------
-# Printer
-for one_day in with_weather.one_days:
-    pprint.pprint(one_day)
+# Print weather rep
+# for one_day in with_weather.one_days:
+#     pprint.pprint(one_day)
+
+# -----------------------------------------------------
+# Print .CSV
+csv = with_weather.get_csv(True, True, True, True, True, True, True)
+print(csv)
+file = open("Data/test_csv.csv", "w+")
+file.write(csv)
+file.close()

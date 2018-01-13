@@ -14,7 +14,7 @@ class WeatherError(Exception):
         return repr(self.parameter)
 
 
-class MissingTwilightDataError(Exception):
+class MissingDataError(Exception):
     def __init__(self, value):
         self.parameter = value
 
