@@ -21,5 +21,3 @@ Output data:
     - (checkboxes) include: {weather, sun, moon, nautical, civil, astronomical}
     - (textbox) output
 """
-
-# change twilight scraper to have fix_dst option
