@@ -1,9 +1,10 @@
 import time
 
-import weather_reps
 import twilight_scraper
-import weatherbit_caller
+import weather_reps
 from exception import AccessError, WeatherError
+
+from backend import weatherbit_caller
 
 
 def create_rep(weather=None, sun=None, moon=None, nautical=None, astronomical=None, civil=None, parameters=None):

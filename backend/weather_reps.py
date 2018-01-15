@@ -1,7 +1,8 @@
 import datetime
 
-from exception import MissingDataError
-from twilight_scraper import next_day
+from backend.twilight_scraper import next_day
+
+from backend.exception import MissingDataError
 
 
 class OneDayWeather:

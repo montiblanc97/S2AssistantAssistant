@@ -1,4 +1,4 @@
-from twilight_scraper import *
+from backend.twilight_scraper import *
 
 # raw_html = scrape_twilight_to_html("moon", "2015", "HI", "Honolulu")
 # print("SCRAPE_USNO")

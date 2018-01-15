@@ -1,22 +1,21 @@
-from bs4 import BeautifulSoup
-import requests
-import pytz
+import calendar
 import datetime
 import json
-import calendar
+
+import pytz
+import requests
+from bs4 import BeautifulSoup
 
 
-def twilight_scrape_fix_auto_weather(task_name, year, weather_data, write_html=False, write_unfixed_dict=False,
-                                     write_fixed_dict=False):
+def twilight_scrape_auto_weather(task_name, year, weather_data, apply_dst=True, write=False):
     """
-    Same as twilight_scrape_fix but determines city, state, and timezone automatically using weather_data
+    Same as twilight_scrape but determines city, state, and timezone automatically using weather_data
     :param task_name: of data to be scraped. Valid parameters are "sun", "moon",
         "nautical twilight", "civil twilight", "astronomical twilight"
     :param year: of data to be scraped
     :param weather_data: weather data of specified city
-    :param write_html: whether or not to save raw HTML scraped off USNO
-    :param write_unfixed_dict: whether or not to save data parsed into below format (without DST fix)
-    :param write_fixed_dict: whether or not to save DST fixed data
+    :param apply_dst: whether or not to apply DST
+    :param write: path to save .json weather data or True to save in ./Data directory
     :return: a dictionary of twilight data with human-friendly labels
         e.g. {"task_name": "sun",
             "year": "2017",
@@ -41,11 +40,10 @@ def twilight_scrape_fix_auto_weather(task_name, year, weather_data, write_html=F
     timezone = weather_data["timezone"]
     city = weather_data["city_name"]
     state = weather_data["state_code"]
-    return twilight_scrape_fix(task_name, year, city, state, timezone, write_html, write_unfixed_dict, write_fixed_dict)
+    return twilight_scrape(task_name, year, city, state, timezone, apply_dst, write)
 
 
-def twilight_scrape_fix(task_name, year, city, state, timezone, write_html=False, write_unfixed_dict=False,
-                        write_fixed_dict=False):
+def twilight_scrape(task_name, year, city, state, timezone, apply_dst=True, write=False):
     """
     Scrape twilight data from USNO and apply DST if applicable.
     :param task_name: of data to be scraped. Valid parameters are "sun", "moon",
@@ -55,9 +53,8 @@ def twilight_scrape_fix(task_name, year, city, state, timezone, write_html=False
     :param state: ditto, must be in initial format
     :param timezone: ditto, valid inputs are timezone format ("America/New York") or:
             "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
-    :param write_html: whether or not to save raw HTML scraped off USNO
-    :param write_unfixed_dict: whether or not to save data parsed into below format (without DST fix)
-    :param write_fixed_dict: whether or not to save DST fixed data
+    :param apply_dst: whether or not to apply DST
+    :param write: path to save .json weather data or True to save in ./Data directory
     :return: a dictionary of twilight data with human-friendly labels
         e.g. {"task_name": "sun",
             "year": "2017",
@@ -76,18 +73,33 @@ def twilight_scrape_fix(task_name, year, city, state, timezone, write_html=False
                     ...}
             ...}
     """
-    html = scrape_twilight_to_html(task_name, year, city, state, write_html)
+    html = scrape_twilight_to_html(task_name, year, city, state)
     formatted = format_html_to_list(html)
-    processed = process_data_list(task_name, year, city, state, formatted, write_unfixed_dict)
-    fixed = fix_dst(processed, timezone, write_fixed_dict)
+    processed = process_data_list(task_name, year, city, state, formatted)
+    if apply_dst is True:
+        processed = fix_dst(processed, timezone)
 
-    return fixed
+    if write:
+        if type(write) is str:  # some sort of path given
+            if "." in write:  # path to file given
+                filename = write
+            else:  # path to directory given
+                filename = write + "/DST_%s_data_%s_%s_%s.json" % (processed["task_name"].lower().replace(" ", "_"),
+                                                                  year, processed["state"], processed["city"])
+        else:
+            filename = "Data/DST_%s_data_%s_%s_%s.json" % (processed["task_name"].lower().replace(" ", "_"),
+                                                           year, processed["state"], processed["city"])
+        writing = open(filename, "w+")
+        written_out = json.dumps(processed)
+        writing.write(written_out)
+        writing.close()
+
+    return processed
 
 
-def twilight_pass_fix(html_path, task_name, year, city, state, timezone,
-                      write_unfixed_dict=False, write_fixed_dict=False):
+def twilight_pass(html_path, task_name, year, city, state, timezone):
     """
-    Same as twilight_scrape_fix but instead of scraping, uses given raw HTML data
+    Same as twilight_scrape but instead of scraping, uses given raw HTML data
     :param html_path: path of raw HTML data
     :param task_name: of data to be scraped. Valid parameters are "sun", "moon",
         "nautical twilight", "civil twilight", "astronomical twilight"
@@ -96,8 +108,6 @@ def twilight_pass_fix(html_path, task_name, year, city, state, timezone,
     :param state: ditto, must be in initial format
     :param timezone: ditto, valid inputs are timezone format ("America/New York") or:
             "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
-    :param write_unfixed_dict: whether or not to save data parsed into below format (without DST fix)
-    :param write_fixed_dict: whether or not to save DST fixed data
     :return: a dictionary of twilight data with human-friendly labels
         e.g. {"task_name": "sun",
             "year": "2017",
@@ -118,12 +128,12 @@ def twilight_pass_fix(html_path, task_name, year, city, state, timezone,
     """
     html = open(html_path, "r+").read()
     formatted = format_html_to_list(html)
-    processed = process_data_list(task_name, year, city, state, formatted, write_unfixed_dict)
-    fixed = fix_dst(processed, timezone, write_fixed_dict)
+    processed = process_data_list(task_name, year, city, state, formatted)
+    fixed = fix_dst(processed, timezone)
     return fixed
 
 
-def scrape_twilight_to_html(task_name, year, city, state, write):
+def scrape_twilight_to_html(task_name, year, city, state):
     """
     Scrapes twilight data in HTML format
     :param task_name: of data to be scraped. Valid paramters are "sun", "moon",
@@ -131,7 +141,6 @@ def scrape_twilight_to_html(task_name, year, city, state, write):
     :param year: of data to be scraped
     :param city: ditto
     :param state: ditto, must be in initial format
-    :param write: whether or not to save scraped data as HTML file
     :return: tuple of strings of task name, year, state, city, and
             twilight data as specified in paramters in HTML format
     """
@@ -152,14 +161,6 @@ def scrape_twilight_to_html(task_name, year, city, state, write):
     print(url)
     response = requests.get(url)
 
-    if write:
-        # to save date gathered
-        filename = "Data/RAW_%s_data_%s_%s_%s.html" % (task_name.lower().replace(" ", "_"), year, state, city)
-
-        writing = open(filename, "w+")
-        writing.write(response.text)
-        writing.close()
-
     return response.text
 
 
@@ -176,7 +177,7 @@ def format_html_to_list(html):
     return info
 
 
-def process_data_list(task_name, year, city, state, data_list, write):
+def process_data_list(task_name, year, city, state, data_list):
     """
     Process twilight data in list form into a dictionary, can also write a .JSON.
     Also adds an hour to times within data if under DST.
@@ -186,10 +187,7 @@ def process_data_list(task_name, year, city, state, data_list, write):
     :param year: of data to be scraped
     :param city: ditto
     :param state: ditto, must be in initial format
-    :param timezone: ditto, valid inputs are timezone format ("America/New York") or:
-            "eastern", "pacific", "mountain", "central", "alaska", "hawaii", "samoa"
     :param data_list: twilight data in list form as formatted by format_html_to_list
-    :param write: whether or not to write output as a .JSON
     :return: a dictionary of twilight data with human-friendly labels
         e.g. {"task_name": "sun",
             "year": "2017",
@@ -239,14 +237,6 @@ def process_data_list(task_name, year, city, state, data_list, write):
                 out["data"][str(month)] = {}
 
             out["data"][str(month)][day] = {task_time_1: first_time, task_time_2: second_time}
-
-    if write:
-        # to save date gathered
-        filename = "Data/%s_data_%s_%s_%s.json" % (task_name.lower().replace(" ", "_"), year, state, city)
-        writing = open(filename, "w+")
-        written_out = json.dumps(out)
-        writing.write(written_out)
-        writing.close()
 
     return out
 
@@ -326,12 +316,11 @@ def add_hour(time):
     return hour + time[2:], overflow
 
 
-def fix_dst(processed_data, timezone, write):
+def fix_dst(processed_data, timezone):
     """
     Given data processed as in process_data_list, adjusts times to account for DST
     :param processed_data: as in spec of process_data_list
     :param timezone: of data
-    :param write: whether or not to write output as a .JSON
     :return: data in same format as input but with adjusted DST times
     """
     ignore = set()  # ignore entries that were already fixed by date before (due to overflow)
@@ -363,15 +352,6 @@ def fix_dst(processed_data, timezone, write):
         if next_iter[0] != year:  # new year (end of data)
             break
         current = next_iter
-
-    if write:
-        # to save date gathered
-        filename = "Data/DST_%s_data_%s_%s_%s.json" % (processed_data["task_name"].lower().replace(" ", "_"),
-                                                       year, processed_data["state"], processed_data["city"])
-        writing = open(filename, "w+")
-        written_out = json.dumps(processed_data)
-        writing.write(written_out)
-        writing.close()
 
     return processed_data
 

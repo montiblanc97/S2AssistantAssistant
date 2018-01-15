@@ -14,7 +14,7 @@ def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
     :param country: of interest, must be two letter initials
     :param days: how many days forecast to read (max 16)
     :param imperial_units: true for Imperial Units, false for Metric
-    :param write: whether or not to save data in .json
+    :param write: path to save .json weather data or True to save in ./Data directory
     :return: dict of weather data
     side effect: saves data in .json if parameter write is True
     """
@@ -36,7 +36,13 @@ def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
     if write:
         # to save date gathered (only daily weather requested)
         now = datetime.datetime.now()
-        filename = "Data/weather_data_%s_%s_%s.json" % (now.year, now.month, now.day)
+        if type(write) is str:  # some sort of path given
+            if "." in write:  # path to file given
+                filename = write
+            else:  # path to directory given
+                filename = write + "/weather_data_%s_%s_%s.json" % (now.year, now.month, now.day)
+        else:  # True
+            filename = "Data/weather_data_%s_%s_%s.json" % (now.year, now.month, now.day)
 
         writing = open(filename, "w+")
         writing.write(response.text)
