@@ -1,3 +1,39 @@
+import sys
+from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QGridLayout
+
+from gui.input import Input
+from gui.output import Output
+from gui.twilight import TwilightInput
+from gui.weather import WeatherInput
+
+
+class MainMenu(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.__init_menu()
+
+    def __init_menu(self):
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
+        self.setWindowTitle("S2AssistantAssistant")
+
+        self.layout.addWidget(Input(), 0 ,0)
+        self.layout.addWidget(Output(), 1, 0)
+
+
+
+
+
+if __name__ == '__main__':  # testing
+    app = QApplication(sys.argv)
+
+    w = MainMenu()
+    w.show()
+
+    sys.exit(app.exec_())
+
+
 # parameters = {"api_key": "", "city": "Cambridge", "state": "MA", "days": "14", "write_weather": True,
 #               "write_unfixed_dict": True, "write_fixed_dict": True, "imperial_units": True, "write_html": True}
 # with_weather = commander.create_rep(True, True, True, True, True, True, parameters)
@@ -13,9 +49,9 @@
 Load data:
     (all radio buttons)
     -weather {scrape: city, state, country, api_key, days, imperial_units, save_weather_data} {load: browse} {None}
-    -twilight_data {sun, moon, nautical, civil, astronomical}
-        -panel for each setting, {scrape: fix_dst, save_*sun*_data
-            if weather is not selected: city, state, timezone, year_start, etc. } {load: browse} {None}
+    -twilight_data 
+        -{sun, moon, nautical, civil, astronomical} each with radio buttons {scrape, load, none}, save checkbox
+        -{scrape: fix_dst, if weather is not selected: city, state, timezone, year_start, etc. }
 
 Output data:
     - (checkboxes) include: {weather, sun, moon, nautical, civil, astronomical}
