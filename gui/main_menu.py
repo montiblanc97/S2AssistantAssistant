@@ -1,6 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QGridLayout
 
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QGridLayout, QVBoxLayout
+
+from gui.button import RunButton
 from gui.input import Input
 from gui.output import Output
 from gui.twilight import TwilightInput
@@ -14,16 +17,16 @@ class MainMenu(QWidget):
         self.__init_menu()
 
     def __init_menu(self):
-        self.layout = QGridLayout()
+        self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.setWindowTitle("S2AssistantAssistant")
 
-        self.layout.addWidget(Input(), 0 ,0)
-        self.layout.addWidget(Output(), 1, 0)
+        self.layout.addWidget(Input())
+        self.layout.addWidget(RunButton())
+        self.layout.addWidget(Output(), 1)
 
-
-
-
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
 
 if __name__ == '__main__':  # testing
     app = QApplication(sys.argv)

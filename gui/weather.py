@@ -1,6 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QRadioButton, QHBoxLayout, QVBoxLayout, QStackedWidget, \
-    QButtonGroup, QPushButton, QLineEdit, QFileDialog
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QLabel, QRadioButton, QHBoxLayout, QVBoxLayout, QStackedWidget, \
+    QButtonGroup, QPushButton, QFileDialog, QPlainTextEdit, QApplication
 
 from gui.helpers import basic_form_creator
 
@@ -13,7 +14,6 @@ class WeatherInput(QWidget):
 
     def __init_weather(self):
         self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel("Weather"))
 
         self.__scrape()
         self.__import()
@@ -24,6 +24,9 @@ class WeatherInput(QWidget):
         self.layout.addWidget(self.selector)
         self.layout.addWidget(self.revolver)
 
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+
         self.setLayout(self.layout)
 
     def __scrape(self):
@@ -33,25 +36,37 @@ class WeatherInput(QWidget):
         input_defaults = {"City": "Cambridge", "State": "MA", "Country": "US", "Days": "14",
                           "Imperial Units": True, "Save Weather": False}
         scrape_layout, self.scrape_fields = basic_form_creator(input_fields, input_defaults)
+        scrape_layout.setContentsMargins(0, 0, 11, 0)
+        scrape_layout.setSpacing(5)
+
         self.scrape = QWidget(self)
 
         self.scrape.setLayout(scrape_layout)
 
     def __import(self):
-        import_layout = QHBoxLayout()
+        import_layout = QVBoxLayout()
 
         button = QPushButton("Browse")
-        self.import_path = QLineEdit()
-        import_layout.addWidget(button)
-        import_layout.addWidget(self.import_path)
 
-        button.clicked.connect(lambda: self.import_path.setText(QFileDialog.getOpenFileName()[0]))
+        self.import_path = QPlainTextEdit()
+        font_height = self.import_path.fontMetrics().height()
+        num_rows = 5
+        self.import_path.setFixedHeight(int(num_rows * font_height))
+
+        import_layout.addWidget(button, 0, Qt.AlignTop | Qt.AlignLeft)
+        import_layout.addWidget(self.import_path, 0, Qt.AlignTop | Qt.AlignLeft)
+
+        button.clicked.connect(lambda: self.import_path.setPlainText(QFileDialog.getOpenFileName()[0]))
+
+        import_layout.setSpacing(10)
+        import_layout.addStretch(1)
 
         self.import_ = QWidget(self)
         self.import_.setLayout(import_layout)
 
     def __selector(self):
         selector_layout = QHBoxLayout()
+        selector_layout.setContentsMargins(0, 0, 0, 11)
         self.selector_button_group = QButtonGroup()
         self.selector_button_group.setExclusive(True)
 
@@ -65,6 +80,7 @@ class WeatherInput(QWidget):
         selector_layout.addWidget(self.none_button)
         selector_layout.addWidget(self.scrape_button)
         selector_layout.addWidget(self.import_button)
+        selector_layout.addStretch()
         self.scrape_button.setChecked(True)
 
         self.selector_button_group.buttonClicked.connect(lambda button: self.switch_window(button))
@@ -86,10 +102,10 @@ class WeatherInput(QWidget):
         self.revolver.setCurrentIndex(self.selector_button_group.id(button) - 1)  # make up for 1-index
 
 
-# if __name__ == '__main__':  # testing
-#     app = QApplication(sys.argv)
-#
-#     w = WeatherInput()
-#     w.show()
-#
-#     sys.exit(app.exec_())
+if __name__ == '__main__':  # testing
+    app = QApplication(sys.argv)
+
+    w = WeatherInput()
+    w.show()
+
+    sys.exit(app.exec_())
