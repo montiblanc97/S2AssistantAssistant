@@ -25,15 +25,15 @@ import backend.weather_reps as weather_reps
 # Pass-in data (after running above once)
 weather_data = json.loads(open("Data/weather_data_2018_1_2.json", "r+").read())  # will need to change date after scrape
 sun = twilight_scraper.twilight_pass("Data/RAW_sun_data_2018_MA_Cambridge.html", "sun", "2018", "Cambridge",
-                                         "MA", "eastern")
+                                     "MA", "eastern")
 moon = twilight_scraper.twilight_pass("Data/RAW_moon_data_2018_MA_Cambridge.html", "moon", "2018", "Cambridge",
-                                          "MA", "eastern")
+                                      "MA", "eastern")
 nautical = twilight_scraper.twilight_pass("Data/RAW_nautical_twilight_data_2018_MA_Cambridge.html",
-                                              "nautical twilight", "2018", "Cambridge", "MA", "eastern")
+                                          "nautical twilight", "2018", "Cambridge", "MA", "eastern")
 astronomical = twilight_scraper.twilight_pass("Data/RAW_astronomical_twilight_data_2018_MA_Cambridge.html",
-                                                  "astronomical twilight", "2018", "Cambridge", "MA", "eastern")
+                                              "astronomical twilight", "2018", "Cambridge", "MA", "eastern")
 civil = twilight_scraper.twilight_pass("Data/RAW_civil_twilight_data_2018_MA_Cambridge.html", "civil twilight",
-                                           "2018", "Cambridge", "MA", "eastern")
+                                       "2018", "Cambridge", "MA", "eastern")
 
 # -----------------------------------------------------
 # General Case

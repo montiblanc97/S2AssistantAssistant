@@ -1,8 +1,8 @@
 import time
 
-import twilight_scraper
-import weather_reps
-from exception import AccessError, WeatherError
+import backend.twilight_scraper as twilight_scraper
+import backend.weather_reps as weather_reps
+from backend.exception import AccessError, WeatherError
 
 from backend import weatherbit_caller
 

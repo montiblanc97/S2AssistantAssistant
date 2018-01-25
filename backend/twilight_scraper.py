@@ -85,7 +85,7 @@ def twilight_scrape(task_name, year, city, state, timezone, apply_dst=True, writ
                 filename = write
             else:  # path to directory given
                 filename = write + "/DST_%s_data_%s_%s_%s.json" % (processed["task_name"].lower().replace(" ", "_"),
-                                                                  year, processed["state"], processed["city"])
+                                                                   year, processed["state"], processed["city"])
         else:
             filename = "Data/DST_%s_data_%s_%s_%s.json" % (processed["task_name"].lower().replace(" ", "_"),
                                                            year, processed["state"], processed["city"])
