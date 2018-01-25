@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFormLayout, QLabel, QLineEdit, QCheckBox, QSizePolicy, QVBoxLayout, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QLabel, QLineEdit, QCheckBox, QVBoxLayout, QHBoxLayout, QWidget
 
 from gui.exception import *
 
@@ -40,6 +40,12 @@ def basic_form_creator(fields, defaults=None):
 
 
 def create_textfield(field, defaults=None):
+    """
+    Helper for basic_form_creator. Given a field name, returns a label and textfield.
+    :param field: name
+    :param defaults: optional dictionary containing {field name: default value for textfield}
+    :return: QLabel with field and QLineEdit with possible default value
+    """
     if defaults is None:
         defaults = {}
 
@@ -56,6 +62,13 @@ def create_textfield(field, defaults=None):
 
 
 def create_checkbox(field, defaults=None, spacing="             "):
+    """
+    Helper for basic_form_creator. Given a field name, returns a label and checkbox.
+    :param field: name
+    :param defaults: optional dictionary containing {field name: whether or not to check by default}
+    :param spacing: string white-space to place in label to adjust space between label and textfield in row
+    :return: QLabel with field and QCheckBox with possible default setting
+    """
     if defaults is None:
         defaults = {}
 
@@ -79,11 +92,25 @@ def create_checkbox(field, defaults=None, spacing="             "):
 
 
 class MutableString:
+    """
+    String object class to allow changing of a stored string.
+    """
+
     def __init__(self, string):
         self.string = string
 
     def set_string(self, string):
+        """
+        Change object's string value.
+        :param string: new string
+        :return: nothing, mutates object
+        """
+        if type(string) is not str:
+            raise ValueError("Expected str but got: " + type(string))
         self.string = string
 
     def get_string(self):
+        """
+        :return: object's string value
+        """
         return self.string

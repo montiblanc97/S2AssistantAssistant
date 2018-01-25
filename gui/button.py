@@ -4,11 +4,14 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QHBoxLayout, QLa
 
 
 class RunButton(QWidget):
+    """
+    Button to run the program.
+    """
     def __init__(self):
         super().__init__()
 
         self.__init_button()
-        self.__init_spacing()
+        self.__init_design()
 
     def __init_button(self):
         self.layout = QHBoxLayout()
@@ -19,10 +22,9 @@ class RunButton(QWidget):
 
         self.setLayout(self.layout)
 
-    def __init_spacing(self):
+    def __init_design(self):
         self.layout.setContentsMargins(11, 11, 11, 0)
-        # good where it is
-        pass
+        # margin on top and none on button because output window margin's are jacked up
 
 
 if __name__ == '__main__':  # testing

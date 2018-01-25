@@ -5,6 +5,11 @@ from PyQt5.QtWidgets import QWidget, QPlainTextEdit, QHBoxLayout, QLabel, QCheck
 
 
 class Output(QWidget):
+    """
+    Output window for GUI, containing checkboxes to designate which types of data to include and a result window
+    to display the output .csv.
+    """
+
     def __init__(self):
         super().__init__()
         self.__init_output()
@@ -15,10 +20,9 @@ class Output(QWidget):
         self.__init_result()
 
         self.row_layout = QHBoxLayout()
-        title_label = QLabel("Output")
-        title_label.setContentsMargins(0, 0, 0, 0)
-        title_label.setStyleSheet("QLabel {font-weight: 600}")
-        self.row_layout.addWidget(title_label)
+        self.title_label = QLabel("Output")
+
+        self.row_layout.addWidget(self.title_label)
         self.row_layout.addWidget(self.checkbox_row)
         self.row_layout.addStretch()
         self.row = QWidget()
@@ -27,27 +31,29 @@ class Output(QWidget):
         self.layout.addWidget(self.row)
         self.layout.addWidget(self.result_window)
 
-        self.__init_spacing()
+        self.__init_design()
         self.setLayout(self.layout)
 
     def __init_checkbox(self):
-        checkbox_layout = QHBoxLayout()
-        checkbox_layout.setContentsMargins(0, 0, 0, 0)
-        checkbox_layout.addWidget(QLabel("       Include: "))
+        self.checkbox_layout = QHBoxLayout()
+        self.checkbox_layout.addWidget(QLabel("       Include: "))  # white-space for design
         self.checkboxes = {}
 
-        for name in ["Sun", "Moon", "Nautical", "Civil", "Astronomical"]:
+        for name in ["Weather", "Sun", "Moon", "Nautical", "Civil", "Astronomical"]:
             checkbox = QCheckBox(name)
             self.checkboxes[name] = checkbox
-            checkbox_layout.addWidget(checkbox)
+            self.checkbox_layout.addWidget(checkbox)
 
         self.checkbox_row = QWidget()
-        self.checkbox_row.setLayout(checkbox_layout)
+        self.checkbox_row.setLayout(self.checkbox_layout)
 
     def __init_result(self):
         self.result_window = QPlainTextEdit()
 
-    def __init_spacing(self):
+    def __init_design(self):
+        self.title_label.setContentsMargins(0, 0, 0, 0)
+        self.title_label.setStyleSheet("QLabel {font-weight: 600}")
+        self.checkbox_layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setContentsMargins(11, 0, 11, 11)
         self.layout.setSpacing(0)
         self.row_layout.setContentsMargins(0, 0, 0, 11)

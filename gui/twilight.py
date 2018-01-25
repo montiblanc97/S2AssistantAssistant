@@ -8,10 +8,15 @@ from gui.weather import WeatherInput
 
 
 class TwilightInput(QWidget):
+    """
+    Twilight parameter input for GUI. Contains twilight data types in a ComboBox and corresponding selector
+    on whether to scrape, import, or ignore as well as necessary parameter input for scraping (unused if not).
+    """
     def __init__(self):
         super().__init__()
 
         self.__init_twilight()
+        self.__init_design()
 
     def __init_twilight(self):
         self.layout = QVBoxLayout()
@@ -23,31 +28,26 @@ class TwilightInput(QWidget):
         self.layout.addWidget(self.types_options, 0)
         self.layout.addWidget(self.scrape, 0)
 
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-        self.layout.addStretch(1)
-
         self.setLayout(self.layout)
 
     def __types_options(self):
         self.types = ["Sun", "Moon", "Nautical", "Civil", "Astronomical"]
-        self.__types_combo_box()
-        self.__types_revolver()
-        self.combo_box.setCurrentIndex(0)
+        self.__types_combo_box()  # creates the combo box
+        self.__types_revolver()  # creates the rotating window
+        self.combo_box.setCurrentIndex(0)  # need to reset because revolver creation ends on last combo box entry
         self.combo_box.currentIndexChanged.connect(lambda index: self.combo_switch_window(index))
+        # can only link after everything is initialized
 
     def __types_combo_box(self):
         self.combo_box = QComboBox()
-        self.combo_box.setContentsMargins(0, 0, 0, 0)
-
         for name in self.types:
             self.combo_box.addItem(name)
 
     def __types_revolver(self):
         self.types_options = QStackedWidget()
-        self.button_groups = {}
-        self.abbreviated_paths = {}  # QLineEdit
-        self.full_import_paths = {}  # MutableString
+        self.button_groups = {}  # dict to store {type name: corresponding button group}
+        self.abbreviated_paths = {}  # QLineEdit that shows just the file name because no space
+        self.full_import_paths = {}  # MutableString stores full path for retrieval later (not seen on GUI)
         self.checkboxes = {}
 
         for name in self.types:
@@ -57,8 +57,6 @@ class TwilightInput(QWidget):
             self.abbreviated_paths[name] = row[2]
             self.full_import_paths[name] = row[3]
             self.checkboxes[name] = row[3]
-
-        self.types_options.setContentsMargins(0, 5, 0, 0)
 
     def __types_block(self, name):
         """
@@ -70,11 +68,8 @@ class TwilightInput(QWidget):
         :return: widget of block, button group of radio buttons, line edit of path, checkbox
         """
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
 
         top_row_layout = QHBoxLayout()
-        top_row_layout.setContentsMargins(0, 0, 5, 0)
 
         button_group = QButtonGroup()  # radio buttons
         button_group.setExclusive(True)
@@ -107,8 +102,6 @@ class TwilightInput(QWidget):
         top_row.setLayout(top_row_layout)
 
         bottom_row_layout = QHBoxLayout()
-        bottom_row_layout.setContentsMargins(0, 0, 0, 0)
-        bottom_row_layout.setSpacing(5)
 
         button = QPushButton("Browse")  # browse button
         abbrev_path = QLineEdit()  # line for import path
@@ -126,6 +119,12 @@ class TwilightInput(QWidget):
         out = QWidget()
         out.setLayout(layout)
 
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        top_row_layout.setContentsMargins(0, 0, 5, 0)
+        bottom_row_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_row_layout.setSpacing(5)
+
         return out, button_group, abbrev_path, full_path, checkbox
 
     def __scrape(self):
@@ -133,28 +132,44 @@ class TwilightInput(QWidget):
                         ("Timezone", "text"), ("Date Start", "text"), ("Date End", "text")]
         input_defaults = {"City": "Cambridge", "State": "MA", "Country": "US", "Timezone": "Eastern",
                           "Apply Daylight Savings": True, "Date Start": "2018MAR28", "Date End": "2018JUN28"}
-        scrape_layout, self.scrape_fields = basic_form_creator(input_fields, input_defaults)
+        self.scrape_layout, self.scrape_fields = basic_form_creator(input_fields, input_defaults)
         self.scrape = QWidget()
 
-        scrape_layout.setContentsMargins(0, 0, 0, 0)
-        scrape_layout.setSpacing(5)
-
-        self.scrape.setLayout(scrape_layout)
+        self.scrape.setLayout(self.scrape_layout)
 
     def combo_switch_window(self, index):
         self.types_options.setCurrentIndex(index)
 
     def update_combo_label_clicked(self, changed):
+        """
+        Updates label in combo box to match current state of that label (scrape, import, or none)
+        :param changed: the label that will be changed
+        :return: nothing, mutates object
+        """
         current_text = self.combo_box.currentText()
         split = current_text.split(" ")
         new_text = split[0] + " - " + changed.text()
-        self.combo_box.setItemText(self.combo_box.currentIndex(),
-                                   new_text)
+        self.combo_box.setItemText(self.combo_box.currentIndex(), new_text)
 
     def set_path(self, abbrev, full):
+        """
+        Requests a file path from user and updates abbrev and full accordingly
+        :param abbrev: QLineEdit to store abbreviated path
+        :param full: MutableString to store full path
+        :return: nothing, mutates parameters
+        """
         path = QFileDialog.getOpenFileName()[0]
         abbrev.setText(path.split("/")[-1])
         full.set_string(path)
+
+    def __init_design(self):
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+        self.layout.addStretch(1)
+        self.combo_box.setContentsMargins(0, 0, 0, 0)
+        self.types_options.setContentsMargins(0, 5, 0, 0)
+        self.scrape_layout.setContentsMargins(0, 0, 0, 0)
+        self.scrape_layout.setSpacing(5)
 
 
 if __name__ == '__main__':  # testing
