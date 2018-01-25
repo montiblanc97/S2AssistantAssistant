@@ -25,7 +25,7 @@ def basic_form_creator(fields, defaults=None):
     for field in fields:  # [name, type]
         inter = func_map[field[1].lower()](field[0], defaults)
         label, field_object = inter
-        out[label] = field_object
+        out[field[0]] = field_object
 
         row_layout = QHBoxLayout()
         row_layout.addWidget(label)

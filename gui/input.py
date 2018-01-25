@@ -15,6 +15,7 @@ class Input(QWidget):
 
         self.__init_input()
         self.__init_design()
+        self.__init_connection()
 
     def __init_input(self):
         self.layout = QGridLayout()
@@ -41,3 +42,16 @@ class Input(QWidget):
         self.layout.setContentsMargins(11, 11, 11, 0)  # no bottom margin to make button closer
         self.weather_label.setAlignment(Qt.AlignCenter)
         self.twilight_label.setAlignment(Qt.AlignCenter)
+
+    def __init_connection(self):
+        self.weather.selector_button_group.buttonClicked.connect(lambda button: self.__connection_helper(button))
+        self.weather.selector_button_group.checkedButton().click()
+
+    def __connection_helper(self, button):
+        self.weather.switch_window(button)
+
+        enable = True if button.text() != "Scrape" else False
+        # print(self.twilight.scrape_fields)
+        city, state = self.twilight.scrape_fields["City"], self.twilight.scrape_fields["State"]
+        city.setEnabled(enable)
+        state.setEnabled(enable)

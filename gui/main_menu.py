@@ -23,9 +23,13 @@ class MainMenu(QWidget):
         self.setLayout(self.layout)
         self.setWindowTitle("S2AssistantAssistant")
 
-        self.layout.addWidget(Input())
-        self.layout.addWidget(RunButton())
-        self.layout.addWidget(Output(), 1)
+        self.input = Input()
+        self.run_widget = RunButton()
+        self.output = Output()
+
+        self.layout.addWidget(self.input)
+        self.layout.addWidget(self.run_widget)
+        self.layout.addWidget(self.output, 1)
 
     def __init_design(self):
         self.layout.setContentsMargins(0, 0, 0, 0)

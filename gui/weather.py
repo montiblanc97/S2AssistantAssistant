@@ -79,8 +79,6 @@ class WeatherInput(QWidget):
         self.selector_layout.addStretch()
         self.scrape_button.setChecked(True)
 
-        self.selector_button_group.buttonClicked.connect(lambda button: self.switch_window(button))
-
         self.selector = QWidget(self)
         self.selector.setLayout(self.selector_layout)
 
