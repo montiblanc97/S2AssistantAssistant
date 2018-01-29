@@ -23,8 +23,7 @@ def basic_form_creator(fields, defaults=None):
     func_map = {"text": create_textfield, "checkbox": create_checkbox}
 
     for field in fields:  # [name, type]
-        inter = func_map[field[1].lower()](field[0], defaults)
-        label, field_object = inter
+        label, field_object = func_map[field[1].lower()](field[0], defaults)
         out[field[0]] = field_object
 
         row_layout = QHBoxLayout()
@@ -78,24 +77,15 @@ def create_checkbox(field, defaults=None, spacing="             "):
     if field in defaults.keys():
         if type(defaults[field]) is not bool:
             raise FormTypeError("create_checkbox: expected bool but got " + type(defaults[label]))
-
         checkbox.setChecked(defaults[field])
 
-    wrapper = QWidget()
-    wrapper_layout = QHBoxLayout()
-    wrapper_layout.addWidget(label)
-    wrapper_layout.addWidget(checkbox, 1)
-    wrapper_layout.setContentsMargins(0, 0, 0, 0)
-    wrapper.setLayout(wrapper_layout)
-
-    return label, wrapper
+    return label, checkbox
 
 
 class MutableString:
     """
     String object class to allow changing of a stored string.
     """
-
     def __init__(self, string):
         self.string = string
 

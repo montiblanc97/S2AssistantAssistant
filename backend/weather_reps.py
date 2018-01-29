@@ -4,9 +4,9 @@ from backend.exception import MissingDataError
 from backend.twilight_scraper import next_day
 
 
-class OneDayWeather:
+class OneDayData:
     """
-    Represents one day's weather data with any combination of general weather, sun data, moon data,
+    Represents one day's data with any combination of general weather, sun data, moon data,
     nautical twilight times, civil twilight times, and astronomical twilight times.
     """
 
@@ -103,9 +103,9 @@ class OneDayWeather:
             self.guidance_driving = "High"
 
 
-class MultiDayWeather:
+class MultiDayData:
     """
-    Represents multi-day weather data with any combination of general weather, sun data, moon data,
+    Represents multi-day data with any combination of general weather, sun data, moon data,
     nautical twilight times, civil twilight times, and astronomical twilight times.
     """
 
@@ -133,11 +133,11 @@ class MultiDayWeather:
                                                            one_day_weather_data["datetime"][0:4])
                 matched_astronomical_twilight_data = self.__match(astronomical_twilight_data,
                                                                   one_day_weather_data["datetime"][0:4])
-                one_day_weather = OneDayWeather(weather_data=one_day_weather_data, sun_data=matched_sun_data,
-                                                moon_data=matched_moon_data,
-                                                nautical_twilight_data=matched_nautical_twilight_data,
-                                                civil_twilight_data=matched_civil_twilight_data,
-                                                astronomical_twilight_data=matched_astronomical_twilight_data)
+                one_day_weather = OneDayData(weather_data=one_day_weather_data, sun_data=matched_sun_data,
+                                             moon_data=matched_moon_data,
+                                             nautical_twilight_data=matched_nautical_twilight_data,
+                                             civil_twilight_data=matched_civil_twilight_data,
+                                             astronomical_twilight_data=matched_astronomical_twilight_data)
                 self.one_days.append(one_day_weather)
         else:
             if year_start is None or month_start is None or day_start is None or \
@@ -152,12 +152,12 @@ class MultiDayWeather:
                 matched_nautical_twilight_data = self.__match(nautical_twilight_data, year)
                 matched_civil_twilight_data = self.__match(civil_twilight_data, year)
                 matched_astronomical_twilight_data = self.__match(astronomical_twilight_data, year)
-                one_day_weather = OneDayWeather(weather_data=None, sun_data=matched_sun_data,
-                                                moon_data=matched_moon_data,
-                                                nautical_twilight_data=matched_nautical_twilight_data,
-                                                civil_twilight_data=matched_civil_twilight_data,
-                                                astronomical_twilight_data=matched_astronomical_twilight_data,
-                                                year=year, month=month, day=day)
+                one_day_weather = OneDayData(weather_data=None, sun_data=matched_sun_data,
+                                             moon_data=matched_moon_data,
+                                             nautical_twilight_data=matched_nautical_twilight_data,
+                                             civil_twilight_data=matched_civil_twilight_data,
+                                             astronomical_twilight_data=matched_astronomical_twilight_data,
+                                             year=year, month=month, day=day)
                 self.one_days.append(one_day_weather)
                 year, month, day = next_day(year, month, day)
         self.__mark_availability(weather_data, sun_data, moon_data,

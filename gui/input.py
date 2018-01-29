@@ -44,14 +44,40 @@ class Input(QWidget):
         self.twilight_label.setAlignment(Qt.AlignCenter)
 
     def __init_connection(self):
-        self.weather.selector_button_group.buttonClicked.connect(lambda button: self.__connection_helper(button))
+        self.weather.selector_button_group.buttonClicked.connect(lambda button: self.__common_param_connect(button))
         self.weather.selector_button_group.checkedButton().click()
 
-    def __connection_helper(self, button):
-        self.weather.switch_window(button)
+        for name in self.twilight.button_groups.keys():
+            twilight_group = self.twilight.button_groups[name]
+            twilight_group.buttonClicked.connect(lambda button: self.__import_field_connect(button))
+            twilight_group.checkedButton().click()
 
-        enable = True if button.text() != "Scrape" else False
-        # print(self.twilight.scrape_fields)
-        city, state = self.twilight.scrape_fields["City"], self.twilight.scrape_fields["State"]
+    def __common_param_connect(self, button):
+        self.weather.switch_window(button)  # using to simulate a click on weather panel buttons
+
+        # disable common parameter fields when unneeded
+        enable = True if button.text() == "None" else False  # other cases twilight data can be taken from weather
+        city, state, date_start, date_end, timezone = self.twilight.scrape_fields["City"], \
+                                                      self.twilight.scrape_fields["State"], \
+                                                      self.twilight.scrape_fields["Date Start"], \
+                                                      self.twilight.scrape_fields["Date End"], \
+                                                      self.twilight.scrape_fields["Timezone"]
+
         city.setEnabled(enable)
         state.setEnabled(enable)
+        date_start.setEnabled(enable)
+        date_end.setEnabled(enable)
+        timezone.setEnabled(enable)
+
+    def __import_field_connect(self, button):
+        # disable import fields when unneeded
+        name = self.twilight.button_reverse_lookup[button]
+        print(name)
+
+        enable = True if button.text() == "Import" else False
+        path = self.twilight.abbreviated_paths[name]
+        browse = self.twilight.buttons[name]
+
+        path.setEnabled(enable)
+        browse.setEnabled(enable)
+

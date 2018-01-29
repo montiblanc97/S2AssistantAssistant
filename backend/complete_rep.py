@@ -58,10 +58,10 @@ def create_rep(weather=None, sun=None, moon=None, nautical=None, astronomical=No
         year_end = error_catch_access("year_end", parameters)
         month_end = error_catch_access("month_end", parameters)
         day_end = error_catch_access("day_end", parameters)
-        return weather_reps.MultiDayWeather(weather, sun, moon, nautical, civil, astronomical, year_start, month_start,
-                                            day_start, year_end, month_end, day_end)
+        return weather_reps.MultiDayData(weather, sun, moon, nautical, civil, astronomical, year_start, month_start,
+                                         day_start, year_end, month_end, day_end)
     else:
-        return weather_reps.MultiDayWeather(weather, sun, moon, nautical, civil, astronomical)
+        return weather_reps.MultiDayData(weather, sun, moon, nautical, civil, astronomical)
 
 
 def classifier(task_name, parameters, weather=None):

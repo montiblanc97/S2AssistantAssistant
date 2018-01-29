@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QRadioButton, QHBoxLayout, QVBoxLayout, QStackedWidget, \
-    QButtonGroup, QPushButton, QFileDialog, QPlainTextEdit, QApplication
+    QButtonGroup, QPushButton, QFileDialog, QPlainTextEdit, QApplication, QCheckBox
 
 from gui.helpers import basic_form_creator
 
@@ -35,11 +35,26 @@ class WeatherInput(QWidget):
 
     def __scrape(self):
         input_fields = [("City", "text"), ("State", "text"), ("Country", "text"), ("Days", "text"),
-                        ("Imperial Units", "checkbox"), ("weatherbit.io Key", "text"),
-                        ("Save Weather", "checkbox")]
-        input_defaults = {"City": "Cambridge", "State": "MA", "Country": "US", "Days": "14",
-                          "Imperial Units": True, "Save Weather": False}
+                        ("weatherbit.io Key", "text")]
+        input_defaults = {"City": "Cambridge", "State": "MA", "Country": "US", "Days": "14"}
         self.scrape_layout, self.scrape_fields = basic_form_creator(input_fields, input_defaults)
+
+        # adding "Imperial Units" and "Save Weather" options as checkboxes in same row.
+        imperial = QCheckBox("Imperial Units")
+        imperial.setChecked(True)  # default is checked
+        save = QCheckBox("Save")
+        self.scrape_fields["Imperial Units"] = imperial
+        self.scrape_fields["Save Weather"] = save
+
+        self.checkbox_layout = QHBoxLayout()
+        self.checkbox_layout.addWidget(imperial)
+        self.checkbox_layout.addWidget(save)
+        self.checkbox_layout.addStretch()
+
+        checkbox = QWidget()
+        checkbox.setLayout(self.checkbox_layout)
+        self.scrape_layout.addWidget(checkbox)
+
         self.scrape = QWidget(self)
         self.scrape.setLayout(self.scrape_layout)
 
@@ -108,7 +123,11 @@ class WeatherInput(QWidget):
         self.import_layout.setSpacing(10)
         self.import_layout.addStretch(1)
         self.selector_layout.setContentsMargins(0, 0, 0, 11)
+        self.checkbox_layout.setContentsMargins(0, 0, 0, 0)
+        self.scrape_layout.addStretch(25)  # stretch large enough to move checkboxes close to other fields
 
+        self.default_border = self.scrape_fields["City"].styleSheet()  # just get from any existing line edit
+        self.error_border = "border: 1px solid red;"
 
 if __name__ == '__main__':  # testing
     app = QApplication(sys.argv)

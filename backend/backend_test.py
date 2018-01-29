@@ -37,7 +37,7 @@ civil = twilight_scraper.twilight_pass("Data/RAW_civil_twilight_data_2018_MA_Cam
 
 # -----------------------------------------------------
 # General Case
-with_weather = weather_reps.MultiDayWeather(weather_data, sun, moon, nautical, civil, astronomical)
+with_weather = weather_reps.MultiDayData(weather_data, sun, moon, nautical, civil, astronomical)
 
 # -----------------------------------------------------
 # Change to Daylight Savings Time and Date Input

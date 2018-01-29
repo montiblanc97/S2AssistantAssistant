@@ -45,27 +45,30 @@ class TwilightInput(QWidget):
 
     def __types_revolver(self):
         self.types_options = QStackedWidget()
+        self.buttons = {}  # browse buttons for each type
         self.button_groups = {}  # dict to store {type name: corresponding button group}
+        self.button_reverse_lookup = {}  # reverse lookup any radio button to its label
         self.abbreviated_paths = {}  # QLineEdit that shows just the file name because no space
         self.full_import_paths = {}  # MutableString stores full path for retrieval later (not seen on GUI)
-        self.checkboxes = {}
 
         for name in self.types:
             row = self.__types_block(name)
             self.types_options.addWidget(row[0])
-            self.button_groups[name] = row[1]
-            self.abbreviated_paths[name] = row[2]
-            self.full_import_paths[name] = row[3]
-            self.checkboxes[name] = row[3]
+            self.buttons[name] = row[1]
+            self.button_groups[name] = row[2]
+            for radio in row[2].buttons():
+                self.button_reverse_lookup[radio] = name
+            self.abbreviated_paths[name] = row[3]
+            self.full_import_paths[name] = row[4]
 
     def __types_block(self, name):
         """
         Makes block for twilight data selection:
             [radio buttons: {none, scrape, import}]
-            [browse button (for import), path (for import), save checkbox]
+            [browse button (for import), path (for import)]
         Label not included (combo box contains)
         :param name: of type of data
-        :return: widget of block, button group of radio buttons, line edit of path, checkbox
+        :return: widget of block, button group of radio buttons, line edit of path
         """
         layout = QVBoxLayout()
 
@@ -77,7 +80,6 @@ class TwilightInput(QWidget):
         none_button = QRadioButton("None")
         scrape_button = QRadioButton("Scrape")
         import_button = QRadioButton("Import")
-        checkbox = QCheckBox("Save")
 
         button_group.addButton(none_button, 1)  # need 1-index because 0 means not found
         button_group.addButton(scrape_button, 2)
@@ -85,7 +87,6 @@ class TwilightInput(QWidget):
         top_row_layout.addWidget(none_button)
         top_row_layout.addWidget(scrape_button)
         top_row_layout.addWidget(import_button)
-        top_row_layout.addWidget(checkbox)
         top_row_layout.addStretch()
 
         button_group.buttonClicked.connect(lambda current: self.update_combo_label_clicked(current))
@@ -109,6 +110,7 @@ class TwilightInput(QWidget):
         bottom_row_layout.addWidget(button)
         bottom_row_layout.addWidget(abbrev_path)
         button.clicked.connect(lambda: self.set_path(abbrev_path, full_path))
+        abbrev_path.textEdited.connect(lambda: self.set_path(abbrev_path, full_path, abbrev_path.text()))
 
         bottom_row = QWidget()
         bottom_row.setLayout(bottom_row_layout)
@@ -125,16 +127,32 @@ class TwilightInput(QWidget):
         bottom_row_layout.setContentsMargins(0, 0, 0, 0)
         bottom_row_layout.setSpacing(5)
 
-        return out, button_group, abbrev_path, full_path, checkbox
+        return out, button, button_group, abbrev_path, full_path
 
     def __scrape(self):
-        input_fields = [("Apply Daylight Savings", "checkbox"), ("City", "text"), ("State", "text"),
-                        ("Timezone", "text"), ("Date Start", "text"), ("Date End", "text")]
-        input_defaults = {"City": "Cambridge", "State": "MA", "Country": "US", "Timezone": "Eastern",
-                          "Apply Daylight Savings": True, "Date Start": "2018MAR28", "Date End": "2018JUN28"}
+        input_fields = [("Date Start", "text"), ("Date End", "text"),
+                        ("City", "text"), ("State", "text"), ("Timezone", "text")]
+        input_defaults = {"Date Start": "2018MAR28", "Date End": "2018JUN28", "City": "Cambridge", "State": "MA",
+                          "Country": "US", "Timezone": "Eastern"}
         self.scrape_layout, self.scrape_fields = basic_form_creator(input_fields, input_defaults)
-        self.scrape = QWidget()
 
+        # adding "Imperial Units" and "Save Weather" options as checkboxes in same row.
+        daylight_savings = QCheckBox("Apply Daylight Savings")
+        daylight_savings.setChecked(True)  # default is checked
+        save = QCheckBox("Save")
+        self.scrape_fields["Apply Daylight Savings"] = daylight_savings
+        self.scrape_fields["Save Twilight"] = save
+
+        self.checkbox_layout = QHBoxLayout()
+        self.checkbox_layout.addWidget(daylight_savings)
+        self.checkbox_layout.addWidget(save)
+        self.checkbox_layout.addStretch()
+
+        checkbox = QWidget()
+        checkbox.setLayout(self.checkbox_layout)
+        self.scrape_layout.insertWidget(0, checkbox)
+
+        self.scrape = QWidget()
         self.scrape.setLayout(self.scrape_layout)
 
     def combo_switch_window(self, index):
@@ -151,15 +169,17 @@ class TwilightInput(QWidget):
         new_text = split[0] + " - " + changed.text()
         self.combo_box.setItemText(self.combo_box.currentIndex(), new_text)
 
-    def set_path(self, abbrev, full):
+    def set_path(self, abbrev, full, path=None):
         """
         Requests a file path from user and updates abbrev and full accordingly
         :param abbrev: QLineEdit to store abbreviated path
         :param full: MutableString to store full path
+        :param path: to change to or prompts user, if path is given does not abbreviate
         :return: nothing, mutates parameters
         """
-        path = QFileDialog.getOpenFileName()[0]
-        abbrev.setText(path.split("/")[-1])
+        if path is None:
+            path = QFileDialog.getOpenFileName()[0]
+            abbrev.setText(path.split("/")[-1])
         full.set_string(path)
 
     def __init_design(self):
@@ -170,6 +190,10 @@ class TwilightInput(QWidget):
         self.types_options.setContentsMargins(0, 5, 0, 0)
         self.scrape_layout.setContentsMargins(0, 0, 0, 0)
         self.scrape_layout.setSpacing(5)
+        self.checkbox_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.default_border = self.scrape_fields["City"].styleSheet()  # just get from any existing line edit
+        self.error_border = "border: 1px solid red;"
 
 
 if __name__ == '__main__':  # testing
