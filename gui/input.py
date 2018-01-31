@@ -44,12 +44,20 @@ class Input(QWidget):
         self.twilight_label.setAlignment(Qt.AlignCenter)
 
     def __init_connection(self):
+        # Enable twilight common parameter fields only when weather is None (otherwise can be taken from weather)
         self.weather.selector_button_group.buttonClicked.connect(lambda button: self.__common_param_connect(button))
         self.weather.selector_button_group.checkedButton().click()
 
+        # Two different connections, see comments inside.
         for name in self.twilight.button_groups.keys():
             twilight_group = self.twilight.button_groups[name]
+
+            # Grey out browse button unless Import is selected.
             twilight_group.buttonClicked.connect(lambda button: self.__import_field_connect(button))
+
+            # Disable weather "Country" field unless all twilight options are None (twilight only support US)
+            twilight_group.buttonClicked.connect(lambda: self.__country_enabler())
+
             twilight_group.checkedButton().click()
 
         self.twilight.button_groups["Sun"].checkedButton().click()
@@ -83,4 +91,15 @@ class Input(QWidget):
 
         path.setEnabled(enable)
         browse.setEnabled(enable)
+
+    def __country_enabler(self):
+        enable = True
+
+        for group in self.twilight.button_groups.values():
+            if group.checkedButton().text() != "None":
+                enable = False
+                self.weather.scrape_fields["Country"].setText("US")  # reset it
+                break
+
+        self.weather.scrape_fields["Country"].setEnabled(enable)
 
