@@ -52,6 +52,10 @@ class Input(QWidget):
             twilight_group.buttonClicked.connect(lambda button: self.__import_field_connect(button))
             twilight_group.checkedButton().click()
 
+        self.twilight.button_groups["Sun"].checkedButton().click()
+        # need to do to update current text for "Sun" in combo box, guessing because individual radio button
+        # is being connected above (due to issues with passing in a function)
+
     def __common_param_connect(self, button):
         self.weather.switch_window(button)  # using to simulate a click on weather panel buttons
 
@@ -72,7 +76,6 @@ class Input(QWidget):
     def __import_field_connect(self, button):
         # disable import fields when unneeded
         name = self.twilight.button_reverse_lookup[button]
-        print(name)
 
         enable = True if button.text() == "Import" else False
         path = self.twilight.abbreviated_paths[name]

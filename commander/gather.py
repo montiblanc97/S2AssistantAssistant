@@ -26,7 +26,7 @@ def gather_all(main_menu):
             out[twilight_type] = twilight_data[twilight_type]
         out["Parameters"]["Apply Daylight Savings"] = twilight_data["Parameters"]["Apply Daylight Savings"]
         out["Parameters"]["Save Twilight"] = twilight_data["Parameters"]["Save Twilight"]
-
+    print(out)
     return True, out
 
 
@@ -125,6 +125,7 @@ def gather_twilight(twilight_input):
     """
     out = {}
     need_scrape = False
+    param_flag = True
 
     type_flag, types_options = gather_twilight_types_options(twilight_input)
 
@@ -141,6 +142,7 @@ def gather_twilight(twilight_input):
         out["Parameters"] = common_param
     else:
         reset_common_parameters_border(twilight_input)
+        out["Parameters"] = {}
 
     if type_flag is False or param_flag is False:
         return False, {}
@@ -178,6 +180,7 @@ def gather_twilight_types_options(twilight_input):
     if len(missing) == 0:
         return True, out
     else:  # at least one missing input field
+        print(missing)
         first_index = twilight_input.types.index(missing[0])
         twilight_input.types_options.setCurrentIndex(first_index)
         twilight_input.combo_box.setCurrentIndex(first_index)
@@ -221,7 +224,3 @@ def reset_common_parameters_border(twilight_input):
     """
     for field in twilight_input.scrape_fields.values():
         field.setStyleSheet(twilight_input.default_border)
-
-
-# TODO: Finish gather_twilight, start process.py
-# TODO: Translate label data gathering to the keys in backend

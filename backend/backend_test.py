@@ -2,6 +2,7 @@ import json
 
 import backend.twilight_scraper as twilight_scraper
 import backend.weather_reps as weather_reps
+import backend.complete_rep as complete_rep
 
 # Tested by hand
 
@@ -70,7 +71,7 @@ with_weather = weather_reps.MultiDayData(weather_data, sun, moon, nautical, civi
 
 # -----------------------------------------------------
 # create_rep pass in
-# with_weather = commander.create_rep(weather_data, sun, moon, nautical, astronomical, civil)
+with_weather = complete_rep.create_rep(weather_data, sun, moon, nautical, astronomical, civil)
 
 # -----------------------------------------------------
 # create_rep scrape
