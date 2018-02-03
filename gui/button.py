@@ -16,9 +16,10 @@ class RunButton(QWidget):
     def __init_button(self):
         self.layout = QHBoxLayout()
         self.layout.addWidget(QLabel(), 1)
-        self.button = QPushButton("   HOOAH   ")
-        self.layout.addWidget(self.button)
+        self.hooah = QPushButton("   HOOAH   ")
+        self.layout.addWidget(self.hooah)
         self.layout.addWidget(QLabel(), 1)
+
 
         self.setLayout(self.layout)
 

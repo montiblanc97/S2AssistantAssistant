@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QRadioButton, QHBoxLayout, QVBoxLayout, QStackedWidget, \
-    QButtonGroup, QPushButton, QFileDialog, QPlainTextEdit, QApplication, QCheckBox
+    QButtonGroup, QPushButton, QFileDialog, QPlainTextEdit, QApplication, QCheckBox, QLabel
 
 from gui.helpers import basic_form_creator
 
@@ -30,6 +30,8 @@ class WeatherInput(QWidget):
 
         self.layout.addWidget(self.selector)
         self.layout.addWidget(self.revolver)
+
+        self.layout.addWidget(QLabel("Powered by the <a href=\"https://www.weatherbit.io/\">Weatherbit API</a>"))
 
         self.setLayout(self.layout)
 

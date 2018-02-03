@@ -4,6 +4,7 @@ import json
 
 import pytz
 import requests
+import os, errno
 from bs4 import BeautifulSoup
 
 
@@ -80,6 +81,12 @@ def twilight_scrape(task_name, year, city, state, timezone, apply_dst=True, writ
         processed = fix_dst(processed, timezone)
 
     if write:
+        try:  # create directory if doesn't exist
+            os.makedirs("Data")
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
         if type(write) is str:  # some sort of path given
             if "." in write:  # path to file given
                 filename = write
@@ -158,7 +165,6 @@ def scrape_twilight_to_html(task_name, year, city, state):
     url += "&state=" + state
     city = city.replace(" ", "+")
     url += "&place=" + city
-    print(url)
     response = requests.get(url)
 
     return response.text

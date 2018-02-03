@@ -17,6 +17,7 @@ class MainMenu(QWidget):
 
         self.__init_menu()
         self.__init_design()
+        self.__init_connection()
 
     def __init_menu(self):
         self.layout = QVBoxLayout()
@@ -31,10 +32,25 @@ class MainMenu(QWidget):
         self.layout.addWidget(self.run_widget)
         self.layout.addWidget(self.output, 1)
 
+    def __init_connection(self):
+        self.input.weather.selector_button_group.buttonClicked.connect(lambda button: self.__guidance_connect(button))
+        self.input.weather.selector_button_group.checkedButton().click()
+
     def __init_design(self):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
 
+    def __guidance_connect(self, button):
+        self.input.weather.switch_window(button)  # using to simulate a click on weather panel buttons
+
+        # disable guidance if weather is not given (nothing to base off of)
+        enable = True if button.text() == "None" else False
+
+        if enable is True:
+            self.output.checkbox.setChecked(False)
+            self.output.checkbox.setEnabled(False)
+        else:
+            self.output.checkbox.setEnabled(True)
 
 if __name__ == '__main__':  # testing
     app = QApplication(sys.argv)

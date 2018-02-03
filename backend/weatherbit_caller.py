@@ -2,7 +2,7 @@ import datetime
 import json
 
 import requests
-
+import os, errno
 
 def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
                             days="14", imperial_units=True, write=True):
@@ -34,6 +34,12 @@ def write_city_weather_data(api_key, city="Cambridge", state="MA", country="US",
     response = requests.get(url)
 
     if write:
+        try:  # create directory if doesn't exist
+            os.makedirs("Data")
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
         # to save date gathered (only daily weather requested)
         now = datetime.datetime.now()
         if type(write) is str:  # some sort of path given

@@ -1,29 +1,30 @@
-# TODO: Error checking on importing from fields (and failing)
-# TODO: grey out country parameter if any twilight data is not None
-# TODO: add fix_dst option under complete_rep/the function within
-# TODO: get rid of write_unfixed_dict and write_unfixed_dict with write_twilight (after fix_dst option implemented)
-
-"""
-All default (scrape all except for Astro and Civil
-{'Weather': {'Action': 'Scrape'}, 'Parameters': {'City': 'Cambridge', 'State': 'MA', 'Country': 'US', 'Days': '14', 'weatherbit.io Key': 'a', 'Imperial Units': True, 'Save Weather': False, 'Apply Daylight Savings': True, 'Save Twilight': False}, 'Sun': {'Action': 'Scrape'}, 'Moon': {'Action': 'Scrape'}, 'Nautical': {'Action': 'Scrape'}, 'Astronomical': {'Action': 'None'}, 'Civil': {'Action': 'None'}}
-
-Weather and Sun Import, others default
-{'Weather': {'Action': 'Import', 'Path': 'a'}, 'Parameters': {'Apply Daylight Savings': True, 'Save Twilight': False}, 'Sun': {'Action': 'Import', 'Path': 'a'}, 'Moon': {'Action': 'Scrape'}, 'Nautical': {'Action': 'Scrape'}, 'Astronomical': {'Action': 'None'}, 'Civil': {'Action': 'None'}}
-
-Weather and Sun None, others default
-{'Weather': {'Action': 'None'}, 'Parameters': {'Date Start': '2018MAR28', 'Date End': '2018JUN28', 'City': 'Cambridge', 'State': 'MA', 'Timezone': 'Eastern', 'Apply Daylight Savings': True, 'Save Twilight': False}, 'Sun': {'Action': 'None'}, 'Moon': {'Action': 'Scrape'}, 'Nautical': {'Action': 'Scrape'}, 'Civil': {'Action': 'None'}, 'Astronomical': {'Action': 'None'}}
-"""
+from json.decoder import JSONDecodeError
+from json import loads
+from commander.helpers import bad_popup
 
 
 def process_gathered(gathered_data):
     """
     Processes and formats data from commander.gather.gather_all into arguments for complete_rep.create_rep .
-    In the case of importing data and invalid files/bad paths, will throw a pop-up and abort.
+    In the case of importing data and invalid files/bad paths, will throw a pop-up and False.
     :param gathered_data: from gather_all
-    :return: arguments for create_rep or a pop-up showing the bad files.
+    :return: arguments for create_rep or a pop-up showing the bad files and False.
     """
+    out = []
+    for data_type in ["Weather", "Sun", "Moon", "Nautical", "Astronomical", "Civil"]:
+        try:
+            out.append(classifier(gathered_data[data_type]))
+        except ValueError:
+            bad_popup(data_type + " Data could not be parsed")
+            return False
+        except FileNotFoundError:
+            bad_popup(data_type + " Data not found at path")
+            return False
+
     parameters = translate_parameters(gathered_data["Parameters"])
-    print(parameters)
+    out.append(parameters)
+
+    return out
 
 
 def translate_parameters(gathered_parameters):
@@ -38,8 +39,8 @@ def translate_parameters(gathered_parameters):
 
     out = {"write_html": False, "write_unfixed_dict": False, }  # default values for all possible parameters from GUI
     translator = {"weatherbit.io Key": "api_key", "City": "city", "State": "state", "Days": "days",
-                  "Imperial Units": "imperial_units", "Country": "Country", "Save Weather": "write_weather", "Apply Daylight Savings": "fix_dst",
-                  "Timezone": "timezone", "Save Twilight": "write_fixed_dict",
+                  "Imperial Units": "imperial_units", "Country": "Country", "Save Weather": "write_weather",
+                  "Apply Daylight Savings": "apply_dst", "Timezone": "timezone", "Save Twilight": "write_twilight",
                   "Date Start": "year_start", "Date End": "year_end"}
     # Date Start and Date End translations will be overwritten later, this is for iteration.
 
@@ -72,10 +73,51 @@ def date_to_components(date):
     return year, month, day
 
 
+def classifier(data_type):
+    """
+    From a given data type field (weather, sun, nautical, etc.), returns the proper parameter for create_rep.
+    In the case of importing data, invalid files will cause JSONDecodeError and bad paths will throw
+    FileNotFoundException
+    :param data_type: the value of a data type from gather_all such as "Sun", "Moon".
+            Will always contain {"Action": "Scrape" or "Import" or "None", "Path": path if Action is Import}
+    :return: True for "Scrape", None for "None", and the loaded data for "Import" (or respective exception)
+    """
+    if "Action" not in data_type.keys():
+        raise ValueError("data_type needs key Action" )
+
+    action = data_type["Action"]
+
+    if action == "Scrape":
+        return True
+    elif action == "None":
+        return None
+    elif action == "Import":
+        if "Path" not in data_type.keys():
+            raise ValueError("tried to import without a Path key in data_type")
+        try:
+            return import_data(data_type["Path"])
+        except FileNotFoundError:
+            raise FileNotFoundError("Invalid path: " + data_type["Path"])
+        except ValueError:
+            raise ValueError("Invalid file: " + data_type["Path"])
+        # except can't load error
+    else:
+        raise ValueError("Action key doesn't have valid value, got: " + str(action))
+
+
 def import_data(path):
     """
-
-    :param path:
-    :return:
+    Imports data from path. In the case of importing data, invalid files will cause JSONDecodeError and bad paths will
+    throw FileNotFoundException
+    :param path: of data
+    :return: loaded data (or respective exception)
     """
-    pass
+    try:
+        data = loads(open(path, "r+").read())
+    except FileNotFoundError:
+        raise FileNotFoundError("Invalid path: " + path)
+    except JSONDecodeError:
+        raise ValueError("Invalid file: " + path)
+    return data
+
+# import_data("E:\Desktop\Andrew\Google Drive\\2017-2018\sandbox\S2AssistantAssistant\\commander\\run.py")

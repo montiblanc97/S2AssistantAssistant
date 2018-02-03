@@ -37,12 +37,12 @@ class Output(QWidget):
     def __init_checkbox(self):
         self.checkbox_layout = QHBoxLayout()
         self.checkbox_layout.addWidget(QLabel("       Include: "))  # white-space for design
-        self.checkboxes = {}
 
-        for name in ["Weather", "Sun", "Moon", "Nautical", "Civil", "Astronomical"]:
-            checkbox = QCheckBox(name)
-            self.checkboxes[name] = checkbox
-            self.checkbox_layout.addWidget(checkbox)
+        self.checkbox = QCheckBox("Guidance")
+        self.checkbox.setChecked(True)
+        self.checkbox_layout.addWidget(self.checkbox)
+
+        self.checkbox_layout.addWidget(QLabel("Copy to Notepad, save file as .csv, open in Google Sheets"))
 
         self.checkbox_row = QWidget()
         self.checkbox_row.setLayout(self.checkbox_layout)
@@ -54,7 +54,7 @@ class Output(QWidget):
         self.title_label.setContentsMargins(0, 0, 0, 0)
         self.title_label.setStyleSheet("QLabel {font-weight: 600}")
         self.checkbox_layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setContentsMargins(11, 0, 11, 11)
+        self.layout.setContentsMargins(11, 11, 11, 11)
         self.layout.setSpacing(0)
         self.row_layout.setContentsMargins(0, 0, 0, 11)
 

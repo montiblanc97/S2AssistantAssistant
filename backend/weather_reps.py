@@ -75,6 +75,18 @@ class OneDayData:
         self.month = date_data[1].lstrip("0")
         self.day = date_data[2].lstrip("0")
 
+        date = datetime.date(int(self.year), int(self.month), int(self.day))
+        day_of_week_lookup = {
+            0: "MON",
+            1: "TUE",
+            2: "WED",
+            3: "THU",
+            4: "FRI",
+            5: "SAT",
+            6: "SUN"
+        }
+        self.day_of_week = day_of_week_lookup[date.weekday()]
+
     def __init_wind(self, weather_data, moderate=11, high=17):
         self.wind_speed = int(weather_data["wind_spd"])
         self.wind_direction = weather_data["wind_cdir"]
@@ -95,11 +107,16 @@ class OneDayData:
 
         lower = self.overview.lower()
         if "rain" in lower or "snow" in lower or "shower" in lower:
+            if self.day_of_week in {"MON", "WED", "FRI"}:
+                if "am" in lower or "morning" in lower:
+                    self.guidance_PT = "High"
+                if ("pm" in lower or "evening" in lower) and self.day_of_week == "WED":
+                    self.guidance_training = "High"
+                else:  # all day
+                    self.guidance_PT = "High"
+                    if self.day_of_week == "WED":
+                        self.guidance_training = "High"
 
-            if "am" in lower and self.day_of_week in {"MON", "WED", "FRI"}:
-                self.guidance_PT = "High"
-            if "pm" in lower and self.day_of_week == "WED":
-                self.guidance_training = "High"
             self.guidance_driving = "High"
 
 

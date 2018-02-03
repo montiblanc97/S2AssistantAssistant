@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import QWidget, QRadioButton, QHBoxLayout, QVBoxLayout, QStackedWidget, \
-    QButtonGroup, QPushButton, QLineEdit, QFileDialog, QCheckBox, QApplication, QComboBox
+    QButtonGroup, QPushButton, QLineEdit, QFileDialog, QCheckBox, QApplication, QComboBox, QLabel
 
 from gui.helpers import basic_form_creator, MutableString
 from gui.weather import WeatherInput
@@ -27,6 +27,9 @@ class TwilightInput(QWidget):
         self.layout.addWidget(self.combo_box, 0)
         self.layout.addWidget(self.types_options, 0)
         self.layout.addWidget(self.scrape, 0)
+
+        self.layout.addWidget(QLabel("Powered by <a href=\"http://aa.usno.navy.mil/index.php\">USNO"
+                                     " Astronomical Applications</a>"))
 
         self.setLayout(self.layout)
 

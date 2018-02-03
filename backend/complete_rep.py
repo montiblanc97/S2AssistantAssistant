@@ -20,7 +20,7 @@ def create_rep(weather=None, sun=None, moon=None, nautical=None, astronomical=No
                        see specification for weather and twilight scrapers for details.
             keys needed for weather data: "api_key", "city", "state", "days", "imperial_units", "write_weather"
                                           if twilight data not needed: "country"
-            keys needed for twilight data: "write_html", "write_unfixed_dict", "write_fixed_dict",
+            keys needed for twilight data: "apply_dst", "write_twilight",
                                           if weather data is not given/scraped: "city", "state", "timezone",
                                                                                 "year_start", "month_start",
                                                                                 "day_start", "year_end", "month_end",
@@ -89,14 +89,13 @@ def classifier(task_name, parameters, weather=None):
                                                          write_weather)
 
     else:  # twilight data
-        city = error_catch_access("city", parameters)
-        state = error_catch_access("state", parameters)
-        write_html = error_catch_access("write_html", parameters)
-        write_unfixed_dict = error_catch_access("write_unfixed_dict", parameters)
-        write_fixed_dict = error_catch_access("write_fixed_dict", parameters)
+        write_twilight = error_catch_access("write_twilight", parameters)
+        apply_dst = error_catch_access("apply_dst", parameters)
 
         if weather is None:
             timezone = error_catch_access("timezone", parameters)
+            city = error_catch_access("city", parameters)
+            state = error_catch_access("state", parameters)
 
             out = []
             year_start = error_catch_access("year_start", parameters)
@@ -109,16 +108,16 @@ def classifier(task_name, parameters, weather=None):
                 years_needed.append(str(current))
 
             for year in years_needed:
-                out.append(twilight_scraper.twilight_scrape_fix(task_name, year, city, state, timezone, write_html,
-                                                                write_unfixed_dict, write_fixed_dict))
+                out.append(twilight_scraper.twilight_scrape(task_name, year, city, state, timezone, apply_dst,
+                                                                write_twilight))
                 time.sleep(2)  # don't scrape so fast
             return out
         else:
             out = []
             years_needed = get_years(weather)
             for year in years_needed:
-                out.append(twilight_scraper.twilight_scrape_fix_auto_weather(task_name, year, weather, write_html,
-                                                                             write_unfixed_dict, write_fixed_dict))
+                out.append(twilight_scraper.twilight_scrape_auto_weather(task_name, year, weather, apply_dst,
+                                                                         write_twilight))
                 time.sleep(2)  # don't scrape so fast
             return out
 

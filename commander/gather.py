@@ -9,7 +9,7 @@ def gather_all(main_menu):
     data for said action, while validating correct parameter input. In case of incorrect parameter input, stops and
     notifies user via the GUI.
     :param main_menu: GUI window that will be marked with incorrect input
-    :return: if valid, True and all information necessary to run create_rep. Else, False and empty dict.
+    :return: if valid, True, all information necessary to run create_rep. Else, False and empty dict.
     """
     weather_flag, weather_data = gather_weather(main_menu.input.weather)
     twilight_flag, twilight_data = gather_twilight(main_menu.input.twilight)
@@ -22,11 +22,16 @@ def gather_all(main_menu):
     if weather_data["Weather"]["Action"] == "None":
         out.update(twilight_data)  # twilight types has everything needed
     else:  # Scrape or Import
+        enable = False  # don't need twilight parameters if all None
         for twilight_type in ["Sun", "Moon", "Nautical", "Astronomical", "Civil"]:
             out[twilight_type] = twilight_data[twilight_type]
-        out["Parameters"]["Apply Daylight Savings"] = twilight_data["Parameters"]["Apply Daylight Savings"]
-        out["Parameters"]["Save Twilight"] = twilight_data["Parameters"]["Save Twilight"]
-    print(out)
+            if twilight_data[twilight_type]["Action"] == "Scrape":
+                enable = True
+
+        if enable is True:
+            out["Parameters"]["Apply Daylight Savings"] = twilight_data["Parameters"]["Apply Daylight Savings"]
+            out["Parameters"]["Save Twilight"] = twilight_data["Parameters"]["Save Twilight"]
+
     return True, out
 
 
