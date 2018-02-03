@@ -1,0 +1,5 @@
+Data/
+.idea/
+__pycache__/
+backend/__pycache__/
+gui/__pycache__/
