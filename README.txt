@@ -11,7 +11,7 @@ Features:
 
 
 How It Works:
-1. Using packaged zip, unzip and run "run.exe". Or using python, run "/commander/run.py".
+1. Using packaged zip for your OS, unzip and run "run.exe/.app". Or using python, run "/commander/run.py".
 2. Fill out input panel. Visit weatherbit.io and sign-up as a free developer to get a key.
 3. HOOAH!
 4. Copy output to a text editor, save it as a .csv file, and display it in Google Sheets (Excel is not friendly with this).
