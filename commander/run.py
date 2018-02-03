@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5 import QtWidgets
 
 from gui.main_menu import MainMenu
 from commander.gather import gather_all
@@ -9,7 +9,7 @@ from backend.complete_rep import create_rep
 
 
 def initialize():
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     w = MainMenu()
     w.run_widget.hooah.clicked.connect(lambda: run(w))
