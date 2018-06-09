@@ -1,7 +1,5 @@
 ![alt text](https://raw.githubusercontent.com/montiblanc97/S2AssistantAssistant/master/demo.png)
 
-UPDATE: No longer fully working, USNO Astronomical Applications twilight data webpage reworked and scraper needs to be updated. Weather is still functional.
-
 Background: Spent 30 mins or more every week making staff slides as Assistant S2 (Staff Intelligence Officer) for ROTC, even using very streamlined Excel spreadsheets. Since I really was just looking up weather data and current events, this is definitely all stuff I can write a program for. Even though I won’t be Assistant S2 next semester, this seems like a cool project to get some API and GUI experience while also helping next year’s Assistant S2.
 
 Features:
